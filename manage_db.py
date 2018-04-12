@@ -6,8 +6,9 @@ class Database_Connection(object):
         self.name = name
         self.con = None
         self.cur = None
+        self.path = 'db/'
         try:
-            self.con = lite.connect(name + '.db')
+            self.con = lite.connect(self.path + name + '.db')
             self.cur = self.con.cursor()
             self.cur.execute('SELECT SQLITE_VERSION()')
             data = self.cur.fetchone()
@@ -35,7 +36,7 @@ class Database_Connection(object):
         #return self.cur.lastrowid
 
     def insert_sdr(self, input, ix):
-        con = lite.connect(self.name + '.db')
+        con = lite.connect(self.path + self.name + '.db')
         with con:
             cur = con.cursor()
             cur.execute("INSERT INTO sdr (input,ix) VALUES('{input}',{ix})".format(input=input, ix=ix))
