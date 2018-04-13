@@ -1,6 +1,7 @@
 import sqlite3 as lite
 import sys
 
+
 class Database_Connection(object):
     def __init__(self, name):
         self.name = name
@@ -25,6 +26,7 @@ class Database_Connection(object):
 
     def create_tables(self):
         self.cur.execute("CREATE TABLE sdr(node INTEGER PRIMARY KEY AUTOINCREMENT, input CHAR, ix INTEGER)")
+        self.cur.execute("CREATE TABLE states(old CHAR, act CHAR, new CHAR)")
         #return self.cur.lastrowid
 
     def insert_sdr(self, input, ix):
@@ -32,6 +34,13 @@ class Database_Connection(object):
         with con:
             cur = con.cursor()
             cur.execute("INSERT INTO sdr (input,ix) VALUES('{input}',{ix})".format(input=input, ix=ix))
+        return cur.lastrowid
+
+    def insert_states(self, old_state, action, new_state):
+        con = lite.connect(self.path + self.name + '.db')
+        with con:
+            cur = con.cursor()
+            cur.execute("INSERT INTO states(old,act,new) VALUES('{old}','{act}','{new}')".format(old=old_state, act=action, new=new_state))
         return cur.lastrowid
 
     def select_sdr_node(self, input, ix):
@@ -45,6 +54,11 @@ class Database_Connection(object):
     def select_sdr_input_ix(self, node):
         self.cur.execute("SELECT input,ix FROM sdr WHERE node={node}".format(node=node))
         return self.cur.fetchall()
+
+    def select_state(self, old, new):
+        self.cur.execute("SELECT act FROM states WHERE old='{old}' and new='{new}'".format(old=old,new=new))
+        return self.cur.fetchall()
+
 
     def get_lastrowid(self):
         return self.cur.lastrowid
