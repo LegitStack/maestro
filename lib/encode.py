@@ -61,20 +61,16 @@ def find_path(old_state, new_state):
 
 # TESTING
 
-print(encode('ABC'))
-print(encode('BDC'))
-print(decode([3,2,4]), '<---mistaken')
-print(decode([3,2,4], randomized=True))
-print(decode([4,1,3]))
-print(decode([4,5,3]))
-print(record_path('BC', 'A', 'DC'))
-print(find_path('BC', 'DC'))
-#   2 1 3   4 5 3
-#   A B C   B D C
-#
-#   node    input   ix
-#   "1"	    "B"	    "1"
-#   "2"	    "A"	    "0"
-#   "3"	    "C"	    "2"
-#   "4"	    "B"	    "0"
-#   "5"	    "D"	    "1"
+print(encode('AB'))
+print(encode('CD'))
+print(decode([2,1]), '<---mistaken')
+print(decode([2,1], randomized=True))
+print(decode([1,2]))
+print(decode([3,4]))
+print(decode([1,4]))
+print(decode([3,2]))
+print(record_path('AB', 'A', 'CD'))
+print(find_path('AB', 'CD'))
+print(eval(find_path('AB', 'CD'))[0])
+#   1 2     3 4
+#   A B     C D
