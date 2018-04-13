@@ -6,7 +6,7 @@ class Database_Connection(object):
         self.name = name
         self.con = None
         self.cur = None
-        self.path = 'db/'
+        self.path = '../db/'
         try:
             self.con = lite.connect(self.path + name + '.db')
             self.cur = self.con.cursor()
@@ -20,16 +20,8 @@ class Database_Connection(object):
         #    if con:
         #        con.close()
 
-    #def get_con(self):
-
     def get_name(self):
         return self.name
-
-    def get_con(self):
-        return self.con
-
-    def get_cur(self):
-        return self.cur
 
     def create_tables(self):
         self.cur.execute("CREATE TABLE sdr(node INTEGER PRIMARY KEY AUTOINCREMENT, input CHAR, ix INTEGER)")
