@@ -74,7 +74,7 @@ depths of the nuances in its internal dialogue.
 
 maestro represents an attempt to exemplify the above interpretation of what 
 intelligence fundamentally is by creating a network of entirely naive nodes that
-work together to achive a certain goal. Their protocol does not evolve nor does
+work together to achieve a certain goal. Their protocol does not evolve nor does
 their connections or internal computational structure to any significant degree
 but once these elements are statically created, different ways in which they can
 effect one another can be explored.
