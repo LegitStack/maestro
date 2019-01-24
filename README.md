@@ -72,6 +72,13 @@ homeostatic (for a time), yet inherently chaotic and unpredictable because it's
 causes recede to the edges of the environment in which it is placed and the
 depths of the nuances in its internal dialogue.
 
+maestro represents an attempt to exemplify the above interpretation of what 
+intelligence fundamentally is by creating a network of entirely naive nodes that
+work together to achive a certain goal. Their protocol does not evolve nor does
+their connections or internal computational structure to any significant degree
+but once these elements are statically created, different ways in which they can
+effect one another can be explored.
+
 
 ## Constraints
 
