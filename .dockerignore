@@ -1,0 +1,7 @@
+.cache
+data
+notebooks
+playgroud
+*cache*
+*.log
+*.env*
