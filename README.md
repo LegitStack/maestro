@@ -99,8 +99,8 @@ The master node has 2 important roles:
 
 1. Create all other actors as required by the environment. One actor will be
 created for each combination of inputs from the environment. if the environment
-is represented as 3 data points, A B and C maestro will make x subordinate
-worker actors: one for A, one for B, C, AB, AC, AB. The master node is
+is represented as 3 data points, A B and C maestro will make 6 subordinate
+worker actors: one for A, one for B, C, AB, AC, BC. The master node is
 automatically assigned ABC.
 
 2. Interface with the human operator and relay goals to the actors. The master
