@@ -72,7 +72,7 @@ homeostatic (for a time), yet inherently chaotic and unpredictable because it's
 causes recede to the edges of the environment in which it is placed and the
 depths of the nuances in its internal dialogue.
 
-maestro represents an attempt to exemplify the above interpretation of what 
+maestro represents an attempt to exemplify the above interpretation of what
 intelligence fundamentally is by creating a network of entirely naive nodes that
 work together to achieve a certain goal. Their protocol does not evolve nor does
 their connections or internal computational structure to any significant degree
@@ -193,7 +193,7 @@ Project Organization
     │
     ├── tests             <-- Tests for source code.
     │
-    ├── venv              <-- Virtual Environments folder for `virtualenv`.
+    ├── simulations       <-- Environments simulations.
     │
     ├── web               <-- Flask app web front end. Possible uses: make
     |                         documentation available or call workflow remotely.
