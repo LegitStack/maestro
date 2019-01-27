@@ -1,3 +1,19 @@
+'''
+this module is not used in the proof of concept, it has to do with producing
+SSDRs (semantic, sparse, distributed representations) from any input data. It's
+very theoretical, and therefore not part of the inital, entirely naive verison.
+
+SSDRs are important because they represent a common data format, a common meta-
+language that can be used to associate patterns within and across systems. This
+can be very useful for generalization purposes.
+
+However, we wil not return to this concept and the related concept of
+automatically encoding semantic data into SDRs until long after the default
+proof of concept of maestroai, the naive sensorimotor inference engine, is
+built.
+'''
+
+
 import manage_db
 
 db = manage_db.Database_Connection('testing')

@@ -1,3 +1,8 @@
+'''
+I don't remmeber what this is, needless to say, at this point it will not be
+used in the proof of concept either.
+'''
+
 # foo = 1110
 # boo = 0111
 # foo -> boo = 1110 -> 0111

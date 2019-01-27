@@ -3,11 +3,11 @@ import sys
 
 
 class Database_Connection(object):
-    def __init__(self, name: str = 'database', path: str = '../../database/'):
+    def __init__(self, name):
         self.name = name
         self.con = None
         self.cur = None
-        self.path = path
+        self.path = '../../database/' # assumes entry point is bin folder.
         try:
             self.con = lite.connect(self.path + name + '.db')
             self.cur = self.con.cursor()
