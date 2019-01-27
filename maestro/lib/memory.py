@@ -47,25 +47,13 @@ def append_memory_action_result(
         action: "str or int",
         result: dict) -> pd.DataFrame:
     ''' inputs are usually saved before actions and results '''
-
-    #memory['action']['action'][eval('&'.join([f'(memory["input"][{k}] == {v})' for k, v in input.items()]))] = action
-    #for key, value in result.items():
-    #    memory['result'][key][eval('&'.join([f'(memory["input"][{k}] == {v})' for k, v in input.items()]))] = value
-    #return memory
-
-    # TODO: optimize
-    arrays = [
-        ['input' for k in sorted(input.keys())] + ['action'] + ['result' for k in sorted(input.keys())],
-        [k for k in sorted(input.keys())] + ['action'] + [k for k in sorted(result.keys())]]
-    tuples = list(zip(*arrays))
-    index = pd.MultiIndex.from_tuples(tuples)
-    values = [[v for _,v in sorted(input.items())] + [action] + [v for _,v in sorted(result.items())]]
-    # TODO: optimize
-    print(memory)
-    print(pd.DataFrame(list(values), columns=index))
-
-    return memory.join(pd.DataFrame(list(values), columns=index), how='left', on=[['input'],[1]], )
-
-
+    memory.loc[
+        eval('&'.join([f'(memory["input"][{k}] == {v})' for k, v in input.items()])),
+        ('action', 'action')] = action
+    for key, value in result.items():
+        memory.loc[
+            eval('&'.join([f'(memory["input"][{k}] == {v})' for k, v in input.items()])),
+            ('result', key)] = value
+    return memory
 
 # TODO: create query functions or even entire path finding functions

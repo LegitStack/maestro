@@ -33,8 +33,8 @@ def test_append_action_result():
     input = {2:3, 1:89, 4:5, 3:0}
     action = 64
     result = {2:54, 1:1, 4:34, 3:0}
-    #df = memory.append_memory_action_result(mem, input, action, result)
-    #print(df)
+    df = memory.append_memory_action_result(mem, input, action, result)
+    print(df)
     assert True
     #assert df['result'][1][0] == 1
     #assert df['result'][3][0] == 0
