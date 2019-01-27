@@ -1,3 +1,10 @@
+'''
+this module creates a database. it was created before, designed after the Tcl
+verison. this will be replaced by pandas dataframes and if we need to save it
+for long term persistence between sessions we'll save it out to pickels or
+something. (for now anyway.)
+'''
+
 import sqlite3 as lite
 import sys
 
