@@ -64,11 +64,13 @@ class RubiksCube():
             18:16, 16:36, 36:38, 38:18,
             17:26, 26:37, 37:27, 27:17, }
 
-    def act(self, action) -> dict:
+    def act(self, action):
         place = copy.deepcopy(self.cube)
         for k, v in eval(f'self.do_{action}').items():
             self.cube[k] = place[v]
 
+    def see(self) -> dict:
+        return self.cube
 
 
 
