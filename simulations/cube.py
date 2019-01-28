@@ -1,4 +1,5 @@
 import copy
+import random
 
 
 class RubiksCube():
@@ -72,8 +73,11 @@ class RubiksCube():
     def see(self) -> dict:
         return self.cube
 
-
-
+    def scramble(self) -> dict:
+        choices = ['top', 'under', 'right', 'left', 'front', 'back']
+        for i in range(40):
+            self.act(random.choice(choices))
+        return self.cube
 
 '''
     def cube_positions(unused):

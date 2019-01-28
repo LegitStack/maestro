@@ -35,3 +35,9 @@ class NumberLine():
             1: int(str(self.location)[0]),
             2: int(str(self.location)[1]),
             3: int(str(self.location)[2]),}
+
+    def scramble(self) -> dict:
+        choices = ['up', 'down', 'doubleup', 'fivedown']
+        for i in range(40):
+            self.act(random.choice(choices))
+        return self.location
