@@ -119,7 +119,7 @@ def search_forward(
             pass
 
         pass
-        filtered = observations[('result', k) for k in goal.keys()]
+        filtered = observations[[('result', k) for k in goal.keys()]]
         filtered.columns = filtered.columns.droplevel()
         ignore = pd.DataFrame(ignore_states)
         filtered = filtered.merge(ignore.drop_duplicates(),
