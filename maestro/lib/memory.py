@@ -113,28 +113,35 @@ def search_forward(
     if goal_observations.shape[0] == 0:
 
         # step 0:
-        #if counter >= max_counter:
+        if counter >= max_counter:
             # TODO: find the best option and return it. this step could be added
             #       into step 3 if the goal is not found in the dataset.
+            pass
 
         pass
-        #https://stackoverflow.com/questions/54394264/how-to-drop-all-columns-under-a-nested-column-in-pandas
-        #filtered_observations = observations
-        # filter observations to exclude anything found in ignore_states
-        #search_forward(
-        #    memory=memory,
-        #    inputs=filtered_observations,
-        #    goal=goal,
-        #    ignore_states=ignore_states,
-        #    counter=counter + 1,
-        #    max_counter=max_counter)
+        filtered = observations[('result', k) for k in goal.keys()]
+        filtered.columns = filtered.columns.droplevel()
+        ignore = pd.DataFrame(ignore_states)
+        filtered = filtered.merge(ignore.drop_duplicates(),
+            on=[k for k in goal.keys()],
+            how='left',
+            indicator=True)
+        filtered = filtered[filtered['_merge'] == 'left_only']
+        answer = search_forward(
+            memory=memory,
+            inputs=filtered,
+            goal=goal,
+            ignore_states=ignore_states,
+            counter=counter + 1,
+            max_counter=max_counter)
+
+        #eval('&'.join([f'(~filtered["result"][{k}] == {v})' for k, v in ignore_states.items()]))
+        #filtered['A'].isin([1, 3]) & filtered['B'].isin([4, 7, 12])]
 
     # step 3b:
     else:
-        pass
-    # if goal state is in there... your search has ended, compile actions
-    # elif filter ones we've seen before and add all inputs (or their indexes) to the ones we've seen before.
-
+        return goal_observations.loc[0,:] # becomes answer, compile actions.
+        #return all matches?
 
 
 
