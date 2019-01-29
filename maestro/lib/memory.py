@@ -12,7 +12,7 @@ representation to fit into a queriable dataframe nicely, so this model will take
 care of that.
 '''
 import pandas as pd
-
+from collections.abc import Iterable
 
 def create_memory_from_input(input: dict, action: dict = None) -> pd.DataFrame:
     ''' creates a dataframe from input dictionary'''
@@ -28,7 +28,7 @@ def create_memory_from_input(input: dict, action: dict = None) -> pd.DataFrame:
     index = pd.MultiIndex.from_tuples(tuples)
     values = [
         [v for _,v in sorted(input.items())] +
-        [v for _,v in sorted(action.items())] +
+        [None for _,v in sorted(action.items())] +
         [None for _,v in sorted(input.items())]]
     return pd.DataFrame(list(values), columns=index)
 
@@ -52,7 +52,8 @@ def append_entire_record(
         [v for _,v in sorted(input.items())] +
         [v for _,v in sorted(action.items())] +
         [v for _,v in sorted(result.items())]]
-    return pd.concat([memory, pd.DataFrame(list(values), columns=index)],ignore_index=True)
+    memory = pd.concat([memory, pd.DataFrame(list(values), columns=index)], ignore_index=True)
+    return memory.drop_duplicates()
 
 
 def append_memory_action_result(
@@ -69,19 +70,19 @@ def append_memory_action_result(
         eval('&'.join([f'(memory["input"][{k}] == {v})' for k, v in input.items()])),
         ('result', [ke for ke, _ in sorted(result.items())])
     ] = [val for _, val in sorted(result.items())]
-    return memory
+    return memory.drop_duplicates()
 
 # TODO: create query functions or even entire path finding functions
 
 
-def search_forward(
+def forward_search(
         memory: pd. DataFrame,
         inputs: 'list(dict)',
         goal: dict,
-        ignore_states: list,
-        counter: int,
-        max_counter: int,
-    ) -> (bool, 'path'):
+        ignore_states: list = None,
+        counter: int = 0,
+        max_counter: int = 5,
+    ) -> (bool, 'list(states)', 'list(actions)'):
     '''
     recursive function, performs a breadth frist search from inputs to goal
     steps:
@@ -94,17 +95,23 @@ def search_forward(
             function with that input list, the original goal, the updated ignore
             list, the original max counter and add one to the counter.
         b)  if it is there recursively generate the action list and return it.
+            isolate the input of action, match to result of observations.
+            return path (list of previous records in answer) and entire record.
+    # TODO: fix it so it will get the closest match if goal is not found.
     '''
+
+    ignore_states = ignore_states or []
 
     # step 1:
     # perhaps we should just add the input IDS or inputs instead of entire observations (input, action, result)
-    ignore_list.append(inputs)
+    if isinstance(inputs, Iterable) and len(inputs) > 0:
+        ignore_states.append(*inputs)
 
     # step 2:
     search_params = []
     for input in inputs:
-        search_params.append('&'.join([f'(memory["input"][{k}] == {v})' for k, v in input.items()]))
-    observations = memory.loc[eval('|'.join(search_params)),]
+        search_params.append('&'.join([f'(memory["input"][{k}]=={v})' for k, v in input.items()]))
+    observations = memory.loc[eval('|'.join(search_params))]
 
     # step 3:
     goal_observations = observations.loc[eval('&'.join([f'(memory["result"][{k}] == {v})' for k, v in goal.items()]))]
@@ -114,9 +121,22 @@ def search_forward(
 
         # step 0:
         if counter >= max_counter:
-            # TODO: find the best option and return it. this step could be added
-            #       into step 3 if the goal is not found in the dataset.
-            pass
+            most_match = 0
+            index = observations.iloc[0].name
+            for ix, obs in observations.iterrows():
+                match_count = 0
+                for col, val in obs['result'].iteritems():
+                    if obs[col] == goal[col]:
+                        match_count += 1
+                if match_count > most_match:
+                    most_match = match_count
+                    index = ix
+            goal_observations = observations.loc[index]
+            input_state = goal_observations[[('input', k) for k in input.keys()]]
+            goal_state = goal_observations[[('result', k) for k in input.keys()]]
+            action_state = goal_observations[[('action', k) for k, v in goal_observations['action'].items()]]
+            state_path = [input_state.to_dict()] + [goal_state.to_dict()]
+            return (False, state_path, [action_state.to_dict()]) # becomes answer, compile actions.
 
         filtered = observations[[('result', k) for k in goal.keys()]]
         filtered.columns = filtered.columns.droplevel()
@@ -126,23 +146,38 @@ def search_forward(
             how='left',
             indicator=True)
         filtered = filtered[filtered['_merge'] == 'left_only']
-        answer = search_forward(
+        filtered = filtered.drop('_merge', axis=1)
+        filtered = filtered.to_dict('records')
+        goal_found, state_path, action_path = forward_search(
             memory=memory,
             inputs=filtered,
             goal=goal,
             ignore_states=ignore_states,
             counter=counter + 1,
             max_counter=max_counter)
-        print(answer)
+        goal_path = observations.loc[
+            eval('&'.join(
+                [f'(memory["result"][{k[1]}] == {v})' for k, v in state_path[0].items()]))]
+        input_state = goal_path[[('input', k) for k in input.keys()]]
+        action_state = goal_path[[('action', k) for k in goal_path['action'].columns]]
+        state_path = input_state.to_dict('records') + state_path
+        action_path = action_state.to_dict('records') + action_path
+        return (goal_found, state_path, action_path)
 
     # step 3b:
     else:
-        return goal_observations.loc[0,:] # becomes answer, compile actions.
+        input_state = goal_observations[[('input', k) for k in input.keys()]]
+        goal_state = goal_observations[[('result', k) for k in input.keys()]]
+        action_state = goal_observations[[('action', k) for k in goal_observations['action'].columns]]
+        state_path = input_state.to_dict('records') + goal_state.to_dict('records')
+        return (True, state_path, action_state.to_dict('records')) # becomes answer, compile actions.
         #return all matches?
 
-
-
-    #results = memory.loc[
-    #    eval('&'.join([f'(memory["result"][{k}] == {v})' for k, v in input.items()])),]
-    # if any of the rows are found in both series - we have found a solution!
-    # else, return false
+    # if max_counter > number of records we have...
+    # TODO: I'm not sure this is working, no test was written for this.
+    goal_observations = observations.loc[0]
+    input_state = goal_observations[[('input', k) for k in input.keys()]]
+    goal_state = goal_observations[[('result', k) for k in input.keys()]]
+    action_state = goal_observations[[('action', k) for k in goal_observations['action'].columns]]
+    state_path = input_state.to_dict('records') + goal_state.to_dict('records')
+    return (False, state_path, action_state.to_dict('records')) # becomes answer, compile actions.

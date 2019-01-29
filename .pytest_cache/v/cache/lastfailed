@@ -1,1 +1,3 @@
-{}
+{
+  "tests/test_memory.py::test_seek_and_find_no_goal_next_best": true
+}
