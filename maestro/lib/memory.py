@@ -118,7 +118,6 @@ def search_forward(
             #       into step 3 if the goal is not found in the dataset.
             pass
 
-        pass
         filtered = observations[[('result', k) for k in goal.keys()]]
         filtered.columns = filtered.columns.droplevel()
         ignore = pd.DataFrame(ignore_states)
@@ -134,9 +133,7 @@ def search_forward(
             ignore_states=ignore_states,
             counter=counter + 1,
             max_counter=max_counter)
-
-        #eval('&'.join([f'(~filtered["result"][{k}] == {v})' for k, v in ignore_states.items()]))
-        #filtered['A'].isin([1, 3]) & filtered['B'].isin([4, 7, 12])]
+        print(answer)
 
     # step 3b:
     else:

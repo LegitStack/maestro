@@ -51,13 +51,16 @@ def install_pytest_hook():
         os.makedirs('.git/hooks')
 
     pytest_hook = '''#!/bin/sh
-echo "Running pre-commit hook pytest tests"
-pytest tests
-if [ $? -ne 0 ]; then
- echo "Tests must pass before commit!"
- exit 1
+BRANCH=$(git branch | grep \* | cut -d ' ' -f2)
+if [ $BRANCH = "master" ]; then
+  echo "Running pre-commit hook pytest tests"
+  pytest tests
+  if [ $? -ne 0 ]; then
+   echo "Tests must pass before commit!"
+   exit 1
+  fi
 fi
-    '''
+'''
     with open('.git/hooks/pre-commit', mode='w') as git_file:
         git_file.write(pytest_hook)
 
