@@ -181,3 +181,6 @@ def forward_search(
     action_state = goal_observations[[('action', k) for k in goal_observations['action'].columns]]
     state_path = input_state.to_dict('records') + goal_state.to_dict('records')
     return (False, state_path, action_state.to_dict('records')) # becomes answer, compile actions.
+
+
+# TODO: backwards_search so that we can burn the candle at both ends. 
