@@ -15,6 +15,23 @@ import itertools
 import pandas as pd
 from collections.abc import Iterable
 
+
+def create_memory_of_columns(input: list, action: list) -> pd.DataFrame:
+    ''' creates a dataframe from input and action lists'''
+    action = action or ['action']
+    arrays = [
+        ['input' for i in input] +
+        ['action' for i in action] +
+        ['result' for i in input],
+        [i for i in input] +
+        [i for i in action] +
+        [i for i in input]]
+    tuples = list(zip(*arrays))
+    index = pd.MultiIndex.from_tuples(tuples)
+    return pd.DataFrame(columns=index)
+
+
+
 def create_memory_from_input(input: dict, action: dict = None) -> pd.DataFrame:
     ''' creates a dataframe from input dictionary'''
     action = action or {'action':None}
@@ -95,8 +112,8 @@ def append_memory_action_result(
     ] = [val for _, val in sorted(result.items())]
     return memory.drop_duplicates()
 
-# TODO: create query functions or even entire path finding functions
 
+### query functions ############################################################
 
 def forward_search(
         memory: pd.DataFrame,
@@ -209,29 +226,29 @@ def forward_search(
 # TODO: backwards_search so that we can burn the candle at both ends.
 
 
-# TODO: make test for this
 def find_input(memory: pd.DataFrame, input: dict) -> pd.DataFrame:
     ''' returns all rows where the input is found in full '''
     condition = '&'.join([f'(memory["input"][{k}] == {v})' for k, v in input.items()])
-    return memory.loc[eval(condition), 'action'].droplevel()
+    return memory.loc[eval(condition), 'action']
 
 
-# TODO: make test for this
-def find_similar(memory: pd.DataFrame, input: dict, limit: int) -> pd.DataFrame:
+def find_similar(memory: pd.DataFrame, input: dict, limit: int = 100) -> pd.DataFrame:
     ''' returns all rows where the input is a partial match up to limit '''
-    matches = pd.DataFrame(columns=[k for k in memory['action'].columns])
+    matches = create_memory_of_columns(
+        input=memory['input'].columns.tolist(),
+        action=memory['action'].columns.tolist())
     for i in reversed(range(0, len(input) + 1)):
         for subset in itertools.combinations(input.items(), i):
             condition = '&'.join([f'(memory["input"][{k}] == {v})' for k, v in subset])
-            matches = pd.concat(
-                [matches, memory.loc[eval(condition), 'action'].droplevel()],
-                ignore_index=True)
-            if matches.shape[0] >= limit:
-                break
-    return matches
+            if condition != '':
+                matches = pd.concat(
+                    [matches, memory.loc[eval(condition)]], ignore_index=True)
+                matches.drop_duplicates(inplace=True)
+                if limit > 0 and matches.shape[0] >= limit:
+                    break
+    return matches['action']
 
 
-# TODO: make test for This
 def simulate_actions(
         memory: pd.DataFrame,
         input: dict,
@@ -242,14 +259,14 @@ def simulate_actions(
     action, *actions = actions
     observation = memory.loc[eval('&'.join(
         [f'(memory["input"][{k}]=={v})' for k, v in input.items()] +
-        [f'(memory["input"][{k}]=={v})' for k, v in action.items()]))]
+        [f'(memory["action"]["{k}"]=="{v}")' for k, v in action.items()]))]
     if observation.shape[0] > 1:
         raise 'there can be only one. this actor is supposed to be dead.'
     elif observation.shape[0] < 1:
         return None
-    state = observation['result'].droplevel().to_dict('records')
+    state = observation['result'].to_dict('records')[0]
     if actions == []:
         if state == goal:
             return True
         return False
-    return simulate_actions(memory, state, goal, actions)
+    return simulate_actions(memory, state, actions, goal)
