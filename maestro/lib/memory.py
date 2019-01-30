@@ -260,6 +260,12 @@ def simulate_actions(
     observation = memory.loc[eval('&'.join(
         [f'(memory["input"][{k}]=={v})' for k, v in input.items()] +
         [f'(memory["action"]["{k}"]=="{v}")' for k, v in action.items()]))]
+        # TODO: notice the "{k}" and "{v}" above? this is because those are strings
+        # instead of numbers like verything else has been during testing. The todo
+        # is this: figure out a way to correctly handle int or str in these eval strings
+        # or figure out a better way to create these conditions. because right now
+        # its technically broken in a few places here. but here it works as long as
+        # inputs and results are ints and actions are always strings. no good.
     if observation.shape[0] > 1:
         raise 'there can be only one. this actor is supposed to be dead.'
     elif observation.shape[0] < 1:
