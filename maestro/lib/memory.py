@@ -11,6 +11,7 @@ there will probably have to be some translation of the environment state
 representation to fit into a queriable dataframe nicely, so this model will take
 care of that.
 '''
+import itertools
 import pandas as pd
 from collections.abc import Iterable
 
@@ -31,6 +32,28 @@ def create_memory_from_input(input: dict, action: dict = None) -> pd.DataFrame:
         [None for _,v in sorted(action.items())] +
         [None for _,v in sorted(input.items())]]
     return pd.DataFrame(list(values), columns=index)
+
+# TODO: write a test for this!
+def append_input(
+        memory: pd.DataFrame,
+        input: dict,
+        ) -> pd.DataFrame:
+    ''' adds input to existing memory structure '''
+    arrays = [
+        ['input' for k in sorted(input.keys())] +
+        ['action' for k in sorted(memory['action'].columns)] +
+        ['result' for k in sorted(input.keys())],
+        [k for k in sorted(input.keys())] +
+        [k for k in sorted(memory['action'].columns)] +
+        [k for k in sorted(input.keys())]]
+    tuples = list(zip(*arrays))
+    index = pd.MultiIndex.from_tuples(tuples)
+    values = [
+        [v for _,v in sorted(input.items())] +
+        [None for _,v in sorted(memory['action'].columns)] +
+        [None for _,v in sorted(input.items())]]
+    memory = pd.concat([memory, pd.DataFrame(list(values), columns=index)], ignore_index=True)
+    return memory.drop_duplicates()
 
 
 def append_entire_record(
@@ -76,7 +99,7 @@ def append_memory_action_result(
 
 
 def forward_search(
-        memory: pd. DataFrame,
+        memory: pd.DataFrame,
         inputs: 'list(dict)',
         goal: dict,
         ignore_states: list = None,
@@ -183,4 +206,26 @@ def forward_search(
     return (False, state_path, action_state.to_dict('records')) # becomes answer, compile actions.
 
 
-# TODO: backwards_search so that we can burn the candle at both ends. 
+# TODO: backwards_search so that we can burn the candle at both ends.
+
+
+# TODO: make test for this
+def find_input(memory: pd.DataFrame, input: dict) -> pd.DataFrame:
+    ''' returns all rows where the input is found in full '''
+    condition = '&'.join([f'(memory["input"][{k}] == {v})' for k, v in input.items()])
+    return memory.loc[eval(condition), 'action'].droplevel()
+
+
+# TODO: make test for this
+def find_similar(memory: pd.DataFrame, input: dict, limit: int) -> pd.DataFrame:
+    ''' returns all rows where the input is a partial match up to limit '''
+    matches = pd.DataFrame(columns=[k for k in memory['action'].columns])
+    for i in reversed(range(0, len(input) + 1)):
+        for subset in itertools.combinations(input.items(), i):
+            condition = '&'.join([f'(memory["input"][{k}] == {v})' for k, v in subset])
+            matches = pd.concat(
+                [matches, memory.loc[eval(condition), 'action'].droplevel()],
+                ignore_index=True)
+            if matches.shape[0] >= limit:
+                break
+    return matches

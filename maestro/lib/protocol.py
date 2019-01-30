@@ -84,5 +84,6 @@ training with longer term goals and it could end up just being the more general
 case of training, but theres many ways we could implement so we wont worry about
 it now.
 
-
+In this naive version of the protocol the entire state is passed to everyone and
+they parse out what they care about.
 '''
