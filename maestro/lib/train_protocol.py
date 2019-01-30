@@ -23,20 +23,21 @@ registry, and count the votes.
 '''
 from maestro.lib import memory
 
+# TODO: make concurrent to listen for master.
+
 class Train():
     ''' class used to persist memory of previous state '''
     def __init__(self, structure: "pd.DataFrame", attention: list, actions: list):
         self.state = None
         self.structure = structure
         self.attention = attention  # list of state-bits it cares about.
-        self.actions = actions
+        self.actions = actions # list of available actions
+
 
     def handle_msg(self, msg):
         ''' message from master or peers? '''
         if msg['from'] == 'master':
-            self.handle_master(msg)
-        else:
-            self.handle_peers(msg)
+            return self.handle_master(msg)
 
 
     def handle_master(self, msg):
@@ -49,14 +50,22 @@ class Train():
         return vote
 
 
+    def parse_state(self, state):
+        ''' trim state down to only what we pay attention to '''
+        parsed = {}
+        for name in self.attention:
+            parsed[name] = state[name]
+        return parsed
+
+
     # TODO: test
     def generate_vote(self, state):
         ''' look through the memory for this state. if it is found, vote for an
             action that we've never done from here before, if it is not found
             search for the most similar states upto a certain threshold and vote
             on the least used action across the group '''
-        matches = memory.find_input(memory=self.structure, input=state)
         actions = self.actions
+        matches = memory.find_input(memory=self.structure, input=state)
         if matches.shape[0] > 0:
             #used_actions = [dict(row) for ix, row in matches['action'].iterrows()]
             used_actions = matches.to_dict('records')
@@ -75,7 +84,7 @@ class Train():
             vote = min(actions_count, key=actions_count.get)
         return vote
 
-
+    # TODO: test
     def update_memory(self, state, action):
         ''' parse state. if I remember a preivous state save a memory (append action
             and state as result), if not make a partial memory (input only). '''
@@ -89,11 +98,3 @@ class Train():
                 action=action,
                 result=state,)
         self.state = state
-
-
-    def parse_state(self, state):
-        ''' trim state down to only what we pay attention to '''
-        parsed = {}
-        for name in self.attention:
-            parsed[name] = state[name]
-        return parsed

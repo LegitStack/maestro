@@ -229,3 +229,27 @@ def find_similar(memory: pd.DataFrame, input: dict, limit: int) -> pd.DataFrame:
             if matches.shape[0] >= limit:
                 break
     return matches
+
+
+# TODO: make test for This
+def simulate_actions(
+        memory: pd.DataFrame,
+        input: dict,
+        actions: 'list(dict)',
+        goal: dict,
+    ) -> 't.Union[bool, None]':
+    ''' simulates actions to see if it will acheive the specified goal '''
+    action, *actions = actions
+    observation = memory.loc[eval('&'.join(
+        [f'(memory["input"][{k}]=={v})' for k, v in input.items()] +
+        [f'(memory["input"][{k}]=={v})' for k, v in action.items()]))]
+    if observation.shape[0] > 1:
+        raise 'there can be only one. this actor is supposed to be dead.'
+    elif observation.shape[0] < 1:
+        return None
+    state = observation['result'].droplevel().to_dict('records')
+    if actions == []:
+        if state == goal:
+            return True
+        return False
+    return simulate_actions(memory, state, goal, actions)
