@@ -86,4 +86,13 @@ it now.
 
 In this naive version of the protocol the entire state is passed to everyone and
 they parse out what they care about.
+
+protocol:
+{
+    from: str('user') || str('master') || str('env') || list(name of actor),
+    state: dict(name of state - key as index value as value),
+    goal: dict(name of state - key as index value as value),
+    actions: list(list(name of all available action)) || list(list(name of sequential action)),
+    votes: list(list(name voted action))
+}
 '''

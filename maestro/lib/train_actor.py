@@ -78,7 +78,7 @@ class Train():
         else:
             matches = memory.find_similar(memory=self.structure, input=state, limit=100)
             used_actions = matches.to_dict('records')
-            actions_count = {k:0 for k in self.actions.keys()}
+            actions_count = {k:0 for k in self.actions}
             for item in used_actions:
                 actions_count[item] += 1
             vote = min(actions_count, key=actions_count.get)

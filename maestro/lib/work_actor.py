@@ -54,8 +54,7 @@ class Work():
         ''' message from master or peers? '''
         if msg['from'] == 'master':
             return self.handle_master(msg)
-        else:
-            return self.handle_peers(msg)
+        return self.handle_peers(msg)
 
 
     def handle_master(self, msg):
@@ -129,3 +128,17 @@ class Work():
             input=self.state,
             actions=actions,
             goal=self.goal,)
+
+
+
+
+
+
+# TODO: since the actors are all prime actors, we know that the actions are
+# compatable with the markov property. thus we can tease out the underlying
+# relationship between them and simulate what would happen even if we haven't
+# seen it happen before by reasoning by analogy. We need to create this ability,
+# but it makes me realize the only thing this system is doing is learning to cut
+# up the environment into sub markov portions... perhaps this is useful if we
+# can also do this with actions at the same time... mmm... come back to this
+# later, perhaps it's not as constraining as I imagine...

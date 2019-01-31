@@ -74,7 +74,7 @@ causes recede to the edges of the environment in which it is placed and the
 depths of the nuances in its internal dialogue.
 
 maestro represents an attempt to exemplify the above interpretation of what
-intelligence fundamentally is by creating a network of entirely naive nodes that
+intelligence fundamentally is by creating a network of entirely naïve nodes that
 work together to achieve a certain goal. Their protocol does not evolve nor does
 their connections or internal computational structure to any significant degree
 but once these elements are statically created, different ways in which they can
@@ -83,12 +83,38 @@ effect one another can be explored.
 
 ## Constraints
 
-maestro only works in environment that are static - that is the state space does
-not change. If maestro is in the same location in the state space and does the
-exact same behavior as last time it should always get the same result. The
-environment also, therefore, needs to be fully observable. Only in this simple
-environment can the maestro learn, as it's understanding is (at least in its
-prototypical iteration) entirely naïve and unsophisticated.
+maestro, being a _naïve_ sensorimotor inference engine has a very limited scope
+of environment which it can accurately model and command.
+
+The most important constraint is that the environment have the Markov principle;
+that the state space of its various configurations be a static structure.
+maestro will explore this state space, it need not see it in it's entirety, but
+it must be static in order to be predictable. If maestro is in a location in the
+state space it has seen before and it does the exact behavior that it performed
+last time, at that location, it should always get the same result.
+
+The second constraint is that the environment be fully observable; that it has
+no hidden variables. This is almost a restatement of the Markov property, but
+its technically a different constraint - that is, it must have the Markov
+property and it must be known to have the Markov property.
+
+The third constraint is that the environment does not change state on its own.
+That is, the maestro, when acting upon the system should be the only actor upon
+the system. This, again, is almost a restating of the previous constraints.
+
+The last constraint upon the environment is that the actions maestro can perform
+upon it change only a specific subset the environment's representation and that
+said actions always have an effect on the same subset.
+
+This may look like a very constrained environment, however most logic puzzles
+fit into this category of environments: an isolated (from any external force),
+fully observable, static state-space, where all actions upon it alter only a
+subset of its informational representation.
+
+The Rubiks Cube, being a quintessential example of an environment like this,
+has been chosen as our primary testing environment as it is a vast state-space,
+somewhat complex, but uniform enough to not require a full exploration of the
+space, that is, it's underlying relationships needn't be logically deduced.
 
 
 ## How maestro works
