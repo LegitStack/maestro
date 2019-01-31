@@ -96,6 +96,24 @@ def append_entire_record(
     return memory.drop_duplicates()
 
 
+def produce_conditions(
+        memory: pd.DataFrame,
+        column: str,
+        map: dict,
+        special_k: int = None
+    ) -> 'conditions':
+    conditions = True
+    if isinstance(map, dict):
+        map = map.items()
+    if special_k:
+        for k, v in map:
+            conditions = conditions & (memory[column][k[special_k]] == v)
+    else:
+        for k, v in map:
+            conditions = conditions & (memory[column][k] == v)
+    return conditions
+
+
 def append_memory_action_result(
         memory: pd.DataFrame,
         input: dict,
@@ -103,11 +121,11 @@ def append_memory_action_result(
         result: dict) -> pd.DataFrame:
     ''' inputs are usually saved before actions and results '''
     memory.loc[
-        eval('&'.join([f'(memory["input"][{k}] == {v})' for k, v in input.items()])),
+        produce_conditions(memory=memory, column='input', map=input),
         ('action', [ke for ke, _ in sorted(action.items())])
     ] = [val for _, val in sorted(action.items())]
     memory.loc[
-        eval('&'.join([f'(memory["input"][{k}] == {v})' for k, v in input.items()])),
+        produce_conditions(memory=memory, column='input', map=input),
         ('result', [ke for ke, _ in sorted(result.items())])
     ] = [val for _, val in sorted(result.items())]
     return memory.drop_duplicates()
@@ -150,11 +168,18 @@ def forward_search(
     # step 2:
     search_params = []
     for input in inputs:
-        search_params.append('&'.join([f'(memory["input"][{k}]=={v})' for k, v in input.items()]))
-    observations = memory.loc[eval('|'.join(search_params))]
+        search_params.append(
+            produce_conditions(memory=memory, column='input', map=input))
+    condition = False
+    for item in search_params:
+        condition = condition | item
+    observations = memory.loc[condition]
 
     # step 3:
-    goal_observations = observations.loc[eval('&'.join([f'(memory["result"][{k}] == {v})' for k, v in goal.items()]))]
+    goal_observations = observations.loc[
+        produce_conditions(memory=memory, column='result', map=goal)]
+
+
 
     # step 3a:
     if goal_observations.shape[0] == 0:
@@ -196,8 +221,7 @@ def forward_search(
             counter=counter + 1,
             max_counter=max_counter)
         goal_path = observations.loc[
-            eval('&'.join(
-                [f'(memory["result"][{k[1]}] == {v})' for k, v in state_path[0].items()]))]
+            produce_conditions(memory=memory, column='result', map=state_path[0], special_k=1)]
         input_state = goal_path[[('input', k) for k in input.keys()]]
         action_state = goal_path[[('action', k) for k in goal_path['action'].columns]]
         state_path = input_state.to_dict('records') + state_path
@@ -228,8 +252,7 @@ def forward_search(
 
 def find_input(memory: pd.DataFrame, input: dict) -> pd.DataFrame:
     ''' returns all rows where the input is found in full '''
-    condition = '&'.join([f'(memory["input"][{k}] == {v})' for k, v in input.items()])
-    return memory.loc[eval(condition), 'action']
+    return memory.loc[produce_conditions(memory=memory, column='input', map=input), 'action']
 
 
 def find_similar(memory: pd.DataFrame, input: dict, limit: int = 100) -> pd.DataFrame:
@@ -239,10 +262,12 @@ def find_similar(memory: pd.DataFrame, input: dict, limit: int = 100) -> pd.Data
         action=memory['action'].columns.tolist())
     for i in reversed(range(0, len(input) + 1)):
         for subset in itertools.combinations(input.items(), i):
-            condition = '&'.join([f'(memory["input"][{k}] == {v})' for k, v in subset])
-            if condition != '':
+            condition = produce_conditions(memory=memory, column='input', map=subset)
+            try: meta_cond = condition.all() == False
+            except: meta_cond = condition == False
+            if meta_cond:
                 matches = pd.concat(
-                    [matches, memory.loc[eval(condition)]], ignore_index=True)
+                    [matches, memory.loc[condition]], ignore_index=True)
                 matches.drop_duplicates(inplace=True)
                 if limit > 0 and matches.shape[0] >= limit:
                     break
@@ -257,15 +282,9 @@ def simulate_actions(
     ) -> 't.Union[bool, None]':
     ''' simulates actions to see if it will acheive the specified goal '''
     action, *actions = actions
-    observation = memory.loc[eval('&'.join(
-        [f'(memory["input"][{k}]=={v})' for k, v in input.items()] +
-        [f'(memory["action"]["{k}"]=="{v}")' for k, v in action.items()]))]
-        # TODO: notice the "{k}" and "{v}" above? this is because those are strings
-        # instead of numbers like verything else has been during testing. The todo
-        # is this: figure out a way to correctly handle int or str in these eval strings
-        # or figure out a better way to create these conditions. because right now
-        # its technically broken in a few places here. but here it works as long as
-        # inputs and results are ints and actions are always strings. no good.
+    observation = memory.loc[
+        produce_conditions(memory=memory, column='input', map=input) &
+        produce_conditions(memory=memory, column='action', map=action) ]
     if observation.shape[0] > 1:
         raise 'there can be only one. this actor is supposed to be dead.'
     elif observation.shape[0] < 1:
