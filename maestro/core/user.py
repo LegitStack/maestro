@@ -1,9 +1,13 @@
 ''' user setup of system '''
 
 from maestro.core import master
+from maestro.core import actor
+
+def entry():
+    master_actor = actor.ActorNode(verbose=True, accepts_user_input=True)
 
 
-def entry(args=None):
+def entry2(args=None):
     ''' loop with user '''
     def help_me():
         return '''
