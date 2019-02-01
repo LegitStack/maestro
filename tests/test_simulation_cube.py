@@ -1,6 +1,6 @@
 import copy
 
-import simulations.cube as sim
+from maestro.simulations import cube as sim
 
 
 def test_four_turns_equals_none_all():

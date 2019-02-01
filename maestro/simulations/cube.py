@@ -1,14 +1,15 @@
 import copy
 import random
 
+from maestro.simulations import env
 
-class RubiksCube():
+class RubiksCube(env.Environment):
     ''' simulates a Rubiks Cube with a 20 cube representaiton '''
     def __init__(self):
-        self.cube = {
+        self.state = {
             1: 'top', 2: 'top', 3: 'top', 4: 'top',
             5: 'top', 6: 'top', 7: 'top', 8: 'top',
-            9:  'left',
+            9: 'left',
             10: 'front', 11: 'front', 12: 'front',
             13: 'right', 14: 'right', 15: 'right',
             16: 'back', 17: 'back', 18: 'back',
@@ -23,6 +24,10 @@ class RubiksCube():
             39: 'left', 40: 'left',
             41: 'under', 42: 'under', 43: 'under', 44: 'under',
             45: 'under', 46: 'under', 47: 'under', 48: 'under'}
+        self.actions = [
+            {0:'up'}, {0:'down'},
+            {0:'right'}, {0:'left'},
+            {0:'front'}, {0:'back'},]
         self.do_right = {
             3:16, 16:45, 45:32, 32:3,
             4:26, 26:44, 44:23, 23:4,
@@ -60,16 +65,18 @@ class RubiksCube():
             18:16, 16:36, 36:38, 38:18,
             17:26, 26:37, 37:27, 27:17, }
 
-    def act(self, action):
-        place = copy.deepcopy(self.cube)
-        for k, v in eval(f'self.do_{action}').items():
-            self.cube[k] = place[v]
+    def act(self, action: dict) -> dict:
+        action = self.clean_act(action)
+        cube = copy.deepcopy(self.state)
+        for k, v in eval(f'self.do_{action[0]}').items():
+            self.state[k] = cube[v]
+        return self.state
 
     def see(self) -> dict:
-        return self.cube
+        return self.state
 
     def scramble(self) -> dict:
         choices = ['top', 'under', 'right', 'left', 'front', 'back']
         for i in range(40):
             self.act(random.choice(choices))
-        return self.cube
+        return self.state

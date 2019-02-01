@@ -10,13 +10,13 @@ with open("README.md", "r") as fh:
     LONG_DESCRIPTION = fh.read()
 
 NAME = 'maestro'
-VERSION = '0.0.0'
+VERSION = '0.0.1'
 
 setup(
     name=NAME,
     version=VERSION,
     namespace_packages=[NAME],
-    description='maestro does something.',
+    description='maestro ai - a naive sensorimotor inference engine.',
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
     packages=[f'{NAME}.{p}' for p in find_packages(where=NAME)],

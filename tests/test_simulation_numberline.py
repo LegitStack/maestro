@@ -1,6 +1,6 @@
 import copy
 
-import simulations.numberline as sim
+from maestro.simulations import numberline as sim
 
 
 def test_up():

@@ -1,7 +1,4 @@
 '''
-
-msgboard is for coolaboration and consensus:
-
 actors add entries to msgboard to:
 1. submit training votes (training)
 2. commit suicide (training)
@@ -15,37 +12,31 @@ actors always listens to it for:
 
 actors listen directly to master for:
 1. master to change their mode
+
+So the ator has 3 threads that all run concurrently.
+    1.  listens to master
+    2.  listens to the messageboard
+    3.  performs serial computation at the behest of the others
+        (mostly finds paths, analyses paths, or produces votes)
 '''
 
 import sys
 from threading import Thread
 
 class ActorNode():
-    '''  '''
+    ''' unit of reactive memory/computation '''
 
     def __init__(self,
         verbose: bool = False,
         accepts_user_input: bool = False,
     ):
-        '''  '''
+        ''' actor nodes contain little memory '''
         self.verbose = verbose
         self.exit = False
         if accepts_user_input:
             self.listen_to_user()
 
 
-    @staticmethod
-    def help_me():
-        return '''
-        commands:
-        help     - displays this message
-        start    - starts workers
-        explore  - tells workers to explore
-        stop     - tells workers to stop all activity
-        sleep    - tells workers to analyse what they've learned
-        do       - tells workers to achieve a goal
-        exit     - exits maestro
-        '''
 
 
     def quit(self):

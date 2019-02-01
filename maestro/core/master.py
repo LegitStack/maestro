@@ -63,34 +63,180 @@ master talks directly to actors:
 
 master always listens directly to user for:
 1. any command (mode change, goal, shutdown, etc)
+
+So the master has 3 threads that all run concurrently.
+    1.  listens to user
+    2.  listens to the messageboard
+    3.  performs serial computation at the behest of the others
+        (mostly interacts with env)
 '''
+import sys
+import time
+from threading import Thread
 
 from maestro.lib import memory
 from maestro.lib import train_master
 from maestro.lib import work_master
-
-# TODO: make concurrent to listen for negations on proposals, and master.
+from maestro.core import actor
+# only needed for typing annotation:
+from maestro.simulations import env
+from maestro.lib import message_board
 
 class MasterNode():
-    ''' Needs to be made concurrent '''
-    def __init__(self):
-        self.mode = 'waiting'
-        #set up train_master mode
-        #set up work_master mode
-        pass
+    ''' MasterNode Object: there can be only one '''
 
-    def start(self):
-        self.mode = 'training'
-        return 'at your service'
+    def __init__(self,
+            msgboard: message_board.MSGBoard,
+            environment: env.Environment,
+            verbose: bool = False
+        ):
+        self.msgboard = msgboard
+        self.env = environment
+        self.verbose = verbose
+        self.exit = False
+        self.mode = 'sleeping'
+        self.state_keys = self.env.get_state_indexes()
+        # TODO: finish: get the state_keys and actions list from env
+        #self.train = train_master.TrainMaster(state_keys: list, actions: list)
+        #self.work = work_master.WorkMaster(state_keys: list, actions: list)
+        self.listen_to()
+
+    ### listen #################################################################
+
+    def listen_to(self):
+        ''' concurrent listening '''
+
+        def user():
+            ''' listens to user, upon command will modify configuration '''
+            print('\nlistening to user input forever') if self.verbose else None
+            while True:
+                self.handle_command(command=input('\nmaestro> '))
+
+        def message_board():
+            ''' upon notification will take actions, modulated by configuration '''
+            print('\nlistening to message_board input forever') if self.verbose else None
+            seen_ids = []
+            while True:
+                time.sleep(1)
+                if self.exit:
+                    print('\nshutting down message_board listening thread') if self.verbose else None
+                    sys.exit()
+                all_messages = self.msgboard.get_messages(0)
+                all_ids = [msg['id'] for msg in all_messages]
+                new_ids = sorted(set(all_ids) - set(seen_ids))
+                for new_id in new_ids:
+                    message = [msg for msg in all_messages if msg['id'] == new_id][0]
+                    self.handle_msg(message)
+                    seen_ids.append(new_id)
+                # TODO: optimize by pulling incrementally, by only pulling whats missing:
+                #missing_ids = sorted(set(range(min(seen_ids), max(seen_ids) + 1)).difference(seen_ids))
+                # TODO: optimize by clearing memory when msgboard gets cleared
+
+        threads = []
+        threads.append(Thread(target=message_board))
+        threads.append(Thread(target=user))
+        try:
+            for thread in threads:
+                thread.start()
+        except (KeyboardInterrupt, SystemExit):
+            self.quit(1)
+
+    def handle_command(self, command: str):
+        ''' message from user, what should we do? '''
+        commands = {
+            'exit': self.quit,
+            'help': self.help_me,
+            'info': self.get_info,
+            'mode train': self.set_mode,
+            'mode work': self.set_mode,
+            'mode sleep': self.set_mode,
+            'do': self.set_goal,}
+        if command in commands.keys() and ' ' not in command:
+            print('\n', commands[command]())
+        elif command.split()[0] in [com.split()[0] for com in commands.keys()]:
+            print('\n', commands[command.split()[0]](*command.split()[1:]))
+        else:
+            print(f'\ninvalid command: {command}\n', self.help_me())
 
     def handle_msg(self, msg):
-        ''' message from env or actors? '''
-        if msg['from'] == 'user':
-            return self.handle_user(msg)
+        ''' message from actors - what should we do with it? '''
+        if self.mode == 'train':
+            # TODO:
+            # count the votes or
+            # hanle a death
+            pass
+        else: # working mode
+            # TODO:
+            # check if this message signals we have reached consensus or
+            # if its a new proposal add it to the list
+            pass
+
+    ### commands ###############################################################
+
+
+    def get_info(self):
+        return f'''
+    maestro system information:
+
+    master:
+        mode: {self.mode}
+        verbosity: {self.verbose}
+        exit status: {self.exit}
+        uptime: coming soon
+        actor count: comming soon
+        registry: comming soon
+
+    message board:
+        latest message id: {self.msgboard.id}
+        latest message: {self.msgboard.get_message()}
+
+    environment:
+        env: {self.env}
+        state indicies: {self.state_keys}
+        available actions: {self.env.get_actions()}
+
+    actors:
+        comming soon
+
+            '''
+
+    @staticmethod
+    def help_me():
+        return '''
+    commands:
+    help        - displays this message
+    info        - display maestro system information
+    mode sleep  - tells workers to stop all activity
+    mode train  - tells workers to explore and learn
+    mode work   - tells workers to collaborate
+    do {goal}   - tells workers to achieve a goal
+    exit        - exits maestro
+            '''
+    def quit(self, err: int = 0):
+        self.exit = True
+        sys.exit()
+
+    def set_mode(self, mode: str):
+        if mode == 'train':
+            # TODO:
+            # erase the memory for work
+            # initialize the memory for train
+            pass
+        elif mode == 'work':
+            # TODO:
+            # erase the memory for train
+            # initialize the memory for work
+            pass
         else:
-            pass # if mode is worker mode, pass to handle message worker mode, etc.
+            # TODO:
+            # assume sleep - stop all activity, clear all memory
+            pass
+        self.mode = mode
 
-
-    def handle_user(self, msg):
-        ''' do whatever the user says (explore, acheive goal, shutdown, etc) '''
-        pass
+    def set_goal(self, *goal):
+        if self.mode != 'work':
+            self.set_mode('work')
+        if len(goal) == self.state_keys:
+            self.working_master.goal = {k:v for k,v in zip(self.state_keys, goal)}
+        else:
+            return f'error:\nspecified goal {goal} is not of the same length ({len(goal)}) as the state representation for this environment ({len(self.state_keys)}).\nplease specify a value for each index in order:\n{self.state_keys}'

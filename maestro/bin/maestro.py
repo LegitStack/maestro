@@ -1,16 +1,18 @@
-'''
-entry point for the maestro project
-'''
+''' commandline entry point for the maestro project '''
 
-from maestro.core import user
-
+from maestro.core import master
+from maestro.lib import message_board
+from maestro.simulations import cube
 
 def main():
-    '''
-    main entry point for the maestro project; runs the entire workflow
-    '''
-    print('running maestro!')
-    print(user.entry())
+    ''' start a maestro ai '''
+
+    master_node = master.MasterNode(
+        msgboard=message_board.MSGBoard(),
+        environment=cube.RubiksCube(),
+        verbose=True)
+
+    master_node.set_mode('train')
 
 
 if __name__ == '__main__':
