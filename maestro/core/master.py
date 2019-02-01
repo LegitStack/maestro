@@ -48,6 +48,23 @@ the registry should look like this
 {actor by unique attention indices: alive or dead}
 '''
 
+'''
+master adds entries to msgboard to:
+1. tell actors of training state change (training)
+2. ask actors for a path towards a goal (work)
+
+He always listens to it for:
+1. training votes (training)
+2. worker deaths (training)
+3. working consensus (vaidated path by all actors) (work)
+
+master talks directly to actors:
+1. set actors modes
+
+master always listens directly to user for:
+1. any command (mode change, goal, shutdown, etc)
+'''
+
 from maestro.lib import memory
 from maestro.lib import train_master
 from maestro.lib import work_master

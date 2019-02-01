@@ -1,3 +1,22 @@
+'''
+
+msgboard is for coolaboration and consensus:
+
+actors add entries to msgboard to:
+1. submit training votes (training)
+2. commit suicide (training)
+3. invalidate or validate others work proposals (work)
+4. propose a work path (work)
+
+actors always listens to it for:
+1. training state change (training)
+2. issuance of a state to goal (work)
+3. others proposals for analysis (work)
+
+actors listen directly to master for:
+1. master to change their mode
+'''
+
 import sys
 from threading import Thread
 
