@@ -69,6 +69,25 @@ So the master has 3 threads that all run concurrently.
     2.  listens to the messageboard
     3.  performs serial computation at the behest of the others
         (mostly interacts with env)
+
+we really want the system to always be learning. it should be default, perhaps
+a default that you can't turn off, that is, it is, by definition a sensori-
+motor inference engine by its very nature. what I'm making here is not just the
+engine but the framework.
+
+therefore, the master should aways inform the actors of all states it has
+recieved, and all actions it performs. also, training should just be a special
+case of work, that means ... that means during training the actors vote on the
+state they want to visit, then work to get there
+
+also a vote during work is important to understand that it's a 3 option vote.
+an actor can say, "no, this will definately not work" or "I don't actually know
+if this will work" or "this works for me." Since this is the framework and not
+just the engine the actors decision making can be swapped out for more sophisticated
+technologies and return a spectrum of agreement. I should perhaps program it that
+way in the first place. with the master never taking actions that have a 0 vote
+that would be 'no, I know that wouldnt work.' the next step might be a naive
+bayes approach on each actor.
 '''
 import sys
 import time
@@ -96,9 +115,20 @@ class MasterNode():
         self.exit = False
         self.mode = 'sleeping'
         self.state_keys = self.env.get_state_indexes()
-        # TODO: finish: get the state_keys and actions list from env
-        #self.train = train_master.TrainMaster(state_keys: list, actions: list)
-        #self.work = work_master.WorkMaster(state_keys: list, actions: list)
+        self.actions = self.env.get_actions()
+
+        self.state = {}
+        self.registry = {}
+        self.action = {}
+
+        self.train = train_master.TrainMaster(self.state_keys, self.actions)
+        # train responsibilities are:
+        #   1. manage a registry of actors
+        #   2. count votes for behaviors
+        self.work = work_master.WorkMaster(self.state_keys, self.actions)
+        # work responsibilities are:
+        #   1. ask for goal from workers
+        #   2. execute returned behaviors
         self.listen_to()
 
     ### listen #################################################################
@@ -133,13 +163,14 @@ class MasterNode():
                 # TODO: optimize by clearing memory when msgboard gets cleared
 
         threads = []
-        threads.append(Thread(target=message_board))
         threads.append(Thread(target=user))
         try:
             for thread in threads:
                 thread.start()
         except (KeyboardInterrupt, SystemExit):
             self.quit(1)
+        # instead of spinning off a new thread, just start listening to board:
+        message_board()
 
     def handle_command(self, command: str):
         ''' message from user, what should we do? '''
@@ -147,10 +178,12 @@ class MasterNode():
             'exit': self.quit,
             'help': self.help_me,
             'info': self.get_info,
-            'mode train': self.set_mode,
-            'mode work': self.set_mode,
-            'mode sleep': self.set_mode,
-            'do': self.set_goal,}
+            'mode': self.set_mode,
+            'send': self.send_message,
+            'goal': self.set_goal,
+            'do': self.perfom_action,
+            'debug': self.debug,
+        }
         if command in commands.keys() and ' ' not in command:
             print('\n', commands[command]())
         elif command.split()[0] in [com.split()[0] for com in commands.keys()]:
@@ -160,10 +193,13 @@ class MasterNode():
 
     def handle_msg(self, msg):
         ''' message from actors - what should we do with it? '''
+        print('for debug NEW MESSAGE:', message)
         if self.mode == 'train':
+            if msg['']
             # TODO:
             # count the votes or
             # hanle a death
+            # birth
             pass
         else: # working mode
             # TODO:
@@ -216,7 +252,8 @@ class MasterNode():
         self.exit = True
         sys.exit()
 
-    def set_mode(self, mode: str):
+    def set_mode(self, *mode: str):
+        mode = mode[0]
         if mode == 'train':
             # TODO:
             # erase the memory for work
@@ -240,3 +277,37 @@ class MasterNode():
             self.working_master.goal = {k:v for k,v in zip(self.state_keys, goal)}
         else:
             return f'error:\nspecified goal {goal} is not of the same length ({len(goal)}) as the state representation for this environment ({len(self.state_keys)}).\nplease specify a value for each index in order:\n{self.state_keys}'
+
+    def send_message(self, *message):
+        message = ' '.join(message)
+        return self.msgboard.add_message({'user':message})
+
+    def debug(self, *code):
+        code = ' '.join(code)
+        return exec(code)
+
+    def perform_action(self, *action):
+        action = ' '.join(action)
+        return self.act(action)
+
+    def act(self, action):
+        return self.analyze_state(self.env.act(action))
+
+    def analyze_state(self, state) -> 'state':
+        diff_keys = [k
+            for (k,v),(_,vv) in
+            zip(sorted(first_dict.items()), sorted(second_dict.items()))
+            if vv != v]
+        if sorted(k) not in self.registry:
+            self.make_actor(state=state, attention=diff_keys)
+        return state
+
+    def make_actor(self, state: dict, attention: list):
+        ''' make a new actor, initialize it with state, attention and actions '''
+        self.registry[attention] = True
+        actor.start_actor(
+            input=self.state,
+            action=self.action,
+            state=state,
+            attention=attention,
+            actions=self.actions)

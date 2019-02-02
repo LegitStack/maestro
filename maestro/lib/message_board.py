@@ -30,7 +30,7 @@ class MSGBoard():
         ''' a message is a dictionary of values '''
         if 'id' not in message.keys():
             message['id'] = self.produce_id()
-        return message, False
+        return message, True
 
     def produce_id(self) -> int:
         self.id += 1

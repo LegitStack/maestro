@@ -95,4 +95,28 @@ protocol:
     actions: list(list(name of all available action)) || list(list(name of sequential action)),
     votes: list(list(name voted action))
 }
+
+examples:
+
+--death:
+death_msg = {'id':1, 'from':[1,2,3], 'msg':'death'}
+death_res = {'id':1, 'from':'master', 'msg':'death', 'to':[1,2,3]}
+
+--states:
+state_msg = {'id':1, 'from':'master', 'state':{0:4, 1:9, 2:6}, 'action':{0:'up'}}
+
+--goals:
+goal__msg = {'id':1, 'from':'master', 'goal':{0:1, 1:1, 2:1}}
+explore_c = {'id':1, 'from':'master', 'goal':'play'}
+
+--training:
+vote__msg = {'id':1, 'from':[1,2,3], 'vote':{0:'up'}}
+
+--collaboration:
+proposal_ = {'id':1, 'from':[1,2,3], 'actions':[{0:'up'},{0:'up'}], 'states':[{0:4, 1:9, 2:6},{0:2, 1:3, 2:2},{0:1, 1:1, 2:1}]}
+veto__msg = {'id':2, 'from':[1,2], 'proposal':1, 'agreement':0.0}
+agree_msg = {'id':2, 'from':[1,2], 'proposal':1, 'agreement':1.0}
+unknown__ = {'id':2, 'from':[1,2], 'proposal':1, 'agreement':0.5}
+
+
 '''

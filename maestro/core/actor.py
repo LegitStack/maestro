@@ -23,10 +23,28 @@ So the ator has 3 threads that all run concurrently.
 import sys
 from threading import Thread
 
+
+def start_actor(
+        input: dict,
+        action: dict,
+        state: dict,
+        attention: list,
+        actions: 'list(dict)'
+    ) -> bool:
+    actor = ActorNode(state, attention, actions, input, action)
+    actor.listen_to('master')
+    actor.listen_to('msgboard')
+    return True
+
 class ActorNode():
     ''' unit of reactive memory/computation '''
 
     def __init__(self,
+        state: dict,
+        attention: list,
+        actions: 'list(dict)',
+        input: dict = None,
+        action: dict = None,
         verbose: bool = False,
         accepts_user_input: bool = False,
     ):
@@ -43,7 +61,7 @@ class ActorNode():
         self.exit = True
         exit()
 
-    def listen_to_user(self):
+    def listen_to(self, who: str):
         ''' concurrent listening '''
         def wire():
             print(f'listening to user input forever') if self.verbose else None

@@ -48,13 +48,3 @@ class TrainMaster():
         for item in msg['votes']:
             actions_count[item] += 1
         return max(actions_count, key=actions_count.get)
-
-
-    def make_actor(self, msg: dict, attention: list):
-        ''' make a new actor, initialize it with state, attention and actions '''
-        self.registry[attention] = True
-        #CreateActor(
-        #    state=msg['state'],
-        #    attention=attention,
-        #    actions=self.actions,)
-        #tell all actors that this actor exists
