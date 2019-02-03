@@ -89,8 +89,10 @@ way in the first place. with the master never taking actions that have a 0 vote
 that would be 'no, I know that wouldnt work.' the next step might be a naive
 bayes approach on each actor.
 '''
+import os
 import sys
 import time
+import copy
 import random
 from threading import Thread
 
@@ -142,21 +144,25 @@ class MasterNode():
 
         def user():
             ''' listens to user, upon command will modify configuration '''
-            print('\nlistening to user input forever') if self.verbose else None
+            print('\nmaster listening to user input forever') if self.verbose else None
             while True:
                 if self.exit:
-                    print('\nshutting down user listening thread') if self.verbose else None
+                    print('\nmaster shutting down user listening thread') if self.verbose else None
                     sys.exit()
-                self.handle_command(command=input('\nmaestro> '))
+                try:
+                    self.handle_command(command=input('\nmaestro> '))
+                exept:
+                    self.quit()
 
         def message_board():
             ''' upon notification will take actions, modulated by configuration '''
-            print('\nlistening to message_board input forever') if self.verbose else None
+            print('\nmaster listening to message_board input forever') if self.verbose else None
             seen_ids = []
             while True:
                 time.sleep(1)
                 if self.exit:
-                    print('\nshutting down message_board listening thread') if self.verbose else None
+                    print('\nmaster shutting down message_board listening thread') if self.verbose else None
+                    self.msgboard.add_message({'from':'master', 'to':'all', 'command':'die'})
                     sys.exit()
                 all_messages = self.msgboard.get_messages(0)
                 all_ids = [msg['id'] for msg in all_messages]
@@ -179,13 +185,12 @@ class MasterNode():
         except (KeyboardInterrupt, SystemExit):
             self.exit = True
             self.quit(1)
-        # instead of spinning off a new thread, just start listening to board:
 
     def main_loop(self):
         while True:
             if self.exit:
                 print('\nshutting down main_loop thread') if self.verbose else None
-                sys.exit()
+                self.quit()
             if self.goal == 'play':
                 self.play()
                 if self.verbose: self.show()
@@ -201,14 +206,13 @@ class MasterNode():
             'exit': self.quit,
             'help': self.help_me,
             'info': self.get_info,
-
             'play': self.set_play,
             'stop': self.set_stop,
             'goal': self.set_goal,
-
             'do': self.perform_action,
             'send': self.send_message,
             'debug': self.debug,
+            'clear': self.clear_screen,
         }
         try:
             if command in commands.keys() and ' ' not in command:
@@ -251,7 +255,7 @@ class MasterNode():
         exit status: {self.exit}
         uptime: coming soon
         actor count: comming soon
-        registry: comming soon
+        registry: {[str(k) + ':' + str(len(k)) for k,v in self.registry.items() if v]}
         current state: {self.state}
 
     message board:
@@ -272,14 +276,15 @@ class MasterNode():
     def help_me():
         return '''
     infomational commands:
-    help        - displays this message
+    help        - display this message
     info        - display maestro system information
-    exit        - exits maestro
+    clear       - clears screen
 
     behavioral commands:
     play        - tells workers to explore and learn
     stop        - tells workers to stop all activity
-    goal {goal} - tesll maestro to achieve a goal
+    goal {goal} - tells maestro to achieve a goal
+    exit        - exits maestro
 
     debug commands:
     do {goal}   - tells workers to do an action
@@ -289,16 +294,6 @@ class MasterNode():
     def quit(self, err: int = 0):
         self.exit = True
         sys.exit()
-
-    #def set_mode(self, *mode: str):
-    #    mode = mode[0]
-    #    if mode == 'play':
-    #        self.goal = mode
-    #    elif mode == 'work':
-    #        self.goal = ''
-    #    elif mode == 'sleep':
-    #        self.goal = None
-    #    return self.goal
 
     def set_play(self):
         self.goal = 'play'
@@ -324,55 +319,15 @@ class MasterNode():
         code = ' '.join(code)
         return exec(code)
 
+    def clear_screen(self):
+        return os.system('cls')
+
     def perform_action(self, *action):
         action = ' '.join(action)
         return self.act(action)
 
-    def act(self, action):
-        return self.analyze_state(self.env.act(action))
-
-    def analyze_state(self, state) -> 'state':
-        diff_keys = tuple([k
-            for (k,v),(_,vv) in
-            zip(sorted(self.state.items()), sorted(state.items()))
-            if vv != v])
-        if diff_keys not in self.registry.keys():
-            save = True
-            for keys in self.registry.keys():
-                if len(diff_keys) < len(keys):
-                    if set(diff_keys).issubset(keys):
-                        save = False
-                elif set(keys).issubset(diff_keys):
-                    self.registry[keys] = False
-            if save:
-                self.make_actor(state=state, attention=diff_keys)
-        return state
-
-    def make_actor(self, state: dict, attention: list):
-        ''' make a new actor, initialize it with state, attention and actions '''
-        self.registry[attention] = True
-        self.voters = self.registry.keys()
-        # TODO: actually start the actor after we finish programming actor.
-        #actor.start_actor(
-        #    input=self.state,
-        #    action=self.action,
-        #    state=state,
-        #    attention=attention,
-        #    actions=self.actions)
-        # TODO: turn off and kill any key that is a subset of another key in the registry.
-        #       you only want to keep the longest key of any version in theory...
-
-    #def explore(self):
-    #    return self.act(random.choice(action))
 
     ### main ###################################################################
-
-    def show_old(self):
-        str1 = f'state: {self.state}, act:{self.action}'
-        back="\b"*len(str1)
-        print(str1, end="")
-        print(back, end="")
-        #sys.stdout.flush()
 
     def show(self):
         counter = 0
@@ -389,13 +344,65 @@ class MasterNode():
 
 
     def play(self):
+        msg = {'from':'master'}
+        msg['last state'] = copy.deepcopy(self.state)
         self.action = random.choice(self.actions)
         self.state = self.act(self.action[0])
-        return self.msgboard.add_message(
-            {'from':'master', 'state':self.state, 'action':self.action})
+        msg['state'] = self.state
+        msg['action'] = self.action
+        return self.msgboard.add_message(msg)
+
 
     def sleep(self):
         time.sleep(1)
 
     def work(self):
         time.sleep(1)
+
+
+    ### behaviors ##############################################################
+
+    def act(self, action):
+        return self.analyze_state(self.env.act(action))
+
+    def analyze_state(self, state) -> 'state':
+        def get_keys_that_changed(state):
+            return tuple([
+                k for (k,v),(_,vv) in
+                zip(sorted(self.state.items()), sorted(state.items()))
+                if vv != v])
+
+        def manage_registry(changed_keys):
+            ''' avoid creating or disable and remove actors assigned to a subset
+                of state indicies that another actor already pays attention to
+                (according to the most naive algorithm). '''
+            if changed_keys not in self.registry.keys():
+                save = True
+                for keys in self.registry.keys():
+                    if len(changed_keys) < len(keys):
+                        if set(changed_keys).issubset(keys):
+                            save = False
+                    elif set(keys).issubset(changed_keys):
+                        self.registry[keys] = False
+                        self.msgboard.add_message({'from':'master', 'to':keys, 'command':'die'})
+                if save:
+                    self.make_actor(state=state, attention=changed_keys)
+
+        changed_keys = get_keys_that_changed(state)
+        manage_registry(changed_keys)
+        return state
+
+    def make_actor(self, state: dict, attention: list):
+        ''' make a new actor, initialize it with state, attention and actions '''
+        self.registry[attention] = True
+        self.voters = self.registry.keys()
+        # TODO: actually start the actor after we finish programming actor.
+        actor.start_actor(
+            attention=attention,
+            actions=self.actions,
+            verbose=self.verbose,)
+        # TODO: turn off and kill any key that is a subset of another key in the registry.
+        #       you only want to keep the longest key of any version in theory...
+
+    #def explore(self):
+    #    return self.act(random.choice(action))

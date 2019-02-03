@@ -6,37 +6,39 @@ install project in development mode:
 import os
 from setuptools import setup, find_packages  # , findall
 
-with open("README.md", "r") as fh:
-    LONG_DESCRIPTION = fh.read()
+def get_long_description():
+    with open("README.md", "r") as fh:
+        return fh.read()
 
-NAME = 'maestro'
-VERSION = '0.0.1'
+def get_name():
+    return 'maestro'
+
+def get_version():
+    return '0.0.1'
 
 setup(
-    name=NAME,
-    version=VERSION,
-    namespace_packages=[NAME],
-    description='maestro ai - a naive sensorimotor inference engine.',
-    long_description=LONG_DESCRIPTION,
+    name=get_name(),
+    version=get_version(),
+    namespace_packages=[get_name()],
+    description='maestro ai - a naive sensorimotor inference engine, a distributed collaboration framework',
+    long_description=get_long_description(),
     long_description_content_type="text/markdown",
-    packages=[f'{NAME}.{p}' for p in find_packages(where=NAME)],
+    packages=[f'{get_name()}.{p}' for p in find_packages(where=get_name())],
     install_requires=[
     ],
-    # python_requires='>=3.5.2',
-    # author="",
-    # author_email="@wcf.com",
-    # url="https://bitbucket.wcf.com/maestro",
-    # classifiers=[
-    #     "Programming Language :: Python :: 3",
-    #     "License :: OSI Approved :: Apache Software License",
-    #     "Operating System :: OS Independent",
-    # ],
-    # scripts=[f for f in findall(dir='pm3/bin') if f.endswith('.py')],
-
-    ## to make it a command line utility uncomment:
+    python_requires='>=3.5.2',
+    author='Jordan Miller',
+    author_email="paradoxlabs@protonmail.com",
+    url="https://github.com/LegitStack/maestro",
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: OS Independent",
+    ],
+    # scripts=[f for f in findall(dir='maestro/bin') if f.endswith('.py')],
     entry_points={
         "console_scripts": [
-            "maestro = maestro.bin.workflow:run_workflow",
+            "maestro = maestro.bin.maestro:main",
         ]
     },
 )

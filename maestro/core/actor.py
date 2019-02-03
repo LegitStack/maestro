@@ -20,87 +20,135 @@ So the ator has 3 threads that all run concurrently.
         (mostly finds paths, analyses paths, or produces votes)
 '''
 
-'''
-I've been thinking about actor collaboration. in the naive version we can
-create a new memory sturcture that is a distilation of the relationships within
-each actor's memory: this/these state, at this value, given this action always
-produces this/these states at the most granular level possible. that way each
-actor has a predition for each way a state can change and can veto correctly.
-but the correct way isn't to veto, it's just to fill in the missing elements of
-state of a proposed action.
-'''
-
 import sys
 from threading import Thread
 
 
 def start_actor(
-        input: dict,
-        action: dict,
-        state: dict,
         attention: list,
-        actions: 'list(dict)'
+        actions: 'list(dict)',
+        verbose: bool,
     ) -> bool:
-    actor = ActorNode(state, attention, actions, input, action)
-    actor.listen_to('master')
-    actor.listen_to('msgboard')
+    actor = ActorNode(attention, actions, verbose)
     return True
+
 
 class ActorNode():
     ''' unit of reactive memory/computation '''
 
     def __init__(self,
-        state: dict,
         attention: list,
         actions: 'list(dict)',
-        input: dict = None,
-        action: dict = None,
         verbose: bool = False,
-        accepts_user_input: bool = False,
     ):
         ''' actor nodes contain little memory '''
         self.verbose = verbose
         self.exit = False
-        if accepts_user_input:
-            self.listen_to_user()
-
-
-
+        self.listen_to()
 
     def quit(self):
         self.exit = True
-        exit()
+        sys.exit()
 
-    def listen_to(self, who: str):
+    def listen_to(self):
         ''' concurrent listening '''
-        def wire():
-            print(f'listening to user input forever') if self.verbose else None
-            commands = {
-                'exit':self.quit, 'help':self.help_me,
-                'start':self.help_me, 'explore':self.help_me, 'stop':self.help_me,
-                'sleep':self.help_me, 'do':self.help_me,
-            }
 
+        def message_board():
+            ''' upon notification will take actions, modulated by configuration '''
+            print(f'\nactor {self.attention} listening to message_board input forever') if self.verbose else None
+            seen_ids = []
             while True:
-                command = input('maestro> ')
-                if command in commands.keys():
-                    print(commands[command]())
+                time.sleep(1)
+                if self.exit:
+                    print(f'\nactor {self.attention} shutting down message_board listening thread') if self.verbose else None
+                    sys.exit()
+                all_messages = self.msgboard.get_messages(0)
+                all_ids = [msg['id'] for msg in all_messages]
+                new_ids = sorted(set(all_ids) - set(seen_ids))
+                for new_id in new_ids:
+                    message = [msg for msg in all_messages if msg['id'] == new_id][0]
+                    self.handle_msg(message)
+                    seen_ids.append(new_id)
+                # TODO: optimize by pulling incrementally, by only pulling whats missing:
+                #missing_ids = sorted(set(range(min(seen_ids), max(seen_ids) + 1)).difference(seen_ids))
+                # TODO: optimize by clearing memory when msgboard gets cleared
+
+        def main_loop(self):
+            while True:
+                if self.exit:
+                    print(f'\nactor {self.attention} shutting down main_loop thread') if self.verbose else None
+                    self.quit()
+                if self.goal == 'play':
+                    self.play()
+                    if self.verbose: self.show()
                 else:
-                    print('invalid command. \n',self.help_me())
+                    self.sleep()
+
 
         threads = []
-        threads.append(Thread(target=wire))
-
+        threads.append(Thread(target=message_board))
+        threads.append(Thread(target=main_loop))
         try:
-            threads[-1].start()
+            for thread in threads:
+                thread.start()
         except (KeyboardInterrupt, SystemExit):
-            sys.exit()
+            self.exit = True
+            self.quit(1)
 
-        print('listening to user input now') if self.verbose else None
-        import time
+    def handle_msg(self, msg):
+        ''' message from master or other actors - what should we do with it? '''
+        if msg['from'] == 'master' and 'command' in msg.keys():
+            return self.handle_master_command(msg)
+        elif msg['from'] == 'master' and 'goal' in msg.keys():
+            return self.handle_master_goal(msg)
+        elif msg['from'] == 'master' and 'state' in msg.keys():
+            self.save_memory(msg)
+            return self.handle_master_state(msg)
 
-        while True:
-            time.sleep(10)
-            if self.exit:
-                sys.exit()
-            print('sleeping')
+
+    ### specific handlers ######################################################
+
+    def handle_master_command(self, msg):
+        '''{'from':'master', 'to':keys, 'command':'die'}'''
+        if (msg['command'] == 'die' and
+        (msg['to'] == self.attention or msg['to'] == 'all')):
+            quit(self)
+        # TODO: other commands ...
+
+    def handle_master_goal(self, msg):
+        '''{'from':'master', 'state':{}, 'goal':{}}'''
+        # TODO: signal main loop thread to start distirbuted path finding process!
+        pass
+
+    def handle_master_state(self, msg):
+        '''{'from':'master', 'last state':{}, 'state':{}, action:{} }'''
+        # TODO: in simplest algorithm do nothing.
+        pass
+
+    ### helper #################################################################
+
+    def parse_state(self, state: dict):
+        ''' trim state down to only what we pay attention to '''
+        return {name: state[name] for name in self.attention}
+
+    def save_memory(self, msg):
+        ''' parse state. if I remember a preivous state save a memory (append action
+            and state as result), if not make a partial memory (input only). '''
+        last = None if 'last state' not in msg.keys() else self.parse_state(msg['last state'])
+        action = None if 'action' not in msg.keys() else msg['action']
+        current = self.parse_state(msg['state'])
+        self.update_memory(state=current, action=action, last=last)
+
+    def update_memory(self, state: dict, action: dict = None, last: dict = None):
+        ''' if preivous state is not given make a partial memory (input only)
+            else save a memory (append action and state as result) '''
+        if last is None or action is None:
+            self.structure = memory.append_input(
+                memory=self.structure,
+                input=state)
+        else:
+            self.structure = memory.append_memory_action_result(
+                memory=self.structure,
+                input=last,
+                action=action,
+                result=state,)

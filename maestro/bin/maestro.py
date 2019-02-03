@@ -12,7 +12,7 @@ def main():
         environment=cube.RubiksCube(),
         verbose=True)
 
-    master_node.set_mode('train')
+    #master_node.set_mode('play')
 
 
 if __name__ == '__main__':
