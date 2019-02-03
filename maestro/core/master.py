@@ -117,10 +117,11 @@ class MasterNode():
         self.state_keys = self.env.get_state_indexes()
         self.actions = self.env.get_actions()
 
-        self.state = {}
+        self.state = self.env.see()
         self.registry = {}
         self.action = {}
 
+        self.goal = None
         self.train = train_master.TrainMaster(self.state_keys, self.actions)
         # train responsibilities are:
         #   1. manage a registry of actors
@@ -130,6 +131,8 @@ class MasterNode():
         #   1. ask for goal from workers
         #   2. execute returned behaviors
         self.listen_to()
+
+        self.voters = self.registry.keys()
 
     ### listen #################################################################
 
@@ -181,21 +184,26 @@ class MasterNode():
             'mode': self.set_mode,
             'send': self.send_message,
             'goal': self.set_goal,
-            'do': self.perfom_action,
+            'do': self.perform_action,
             'debug': self.debug,
         }
-        if command in commands.keys() and ' ' not in command:
-            print('\n', commands[command]())
-        elif command.split()[0] in [com.split()[0] for com in commands.keys()]:
-            print('\n', commands[command.split()[0]](*command.split()[1:]))
-        else:
-            print(f'\ninvalid command: {command}\n', self.help_me())
+        try:
+            if command in commands.keys() and ' ' not in command:
+                print('\n', commands[command]())
+            elif command.split()[0] in [com.split()[0] for com in commands.keys()]:
+                print('\n', commands[command.split()[0]](*command.split()[1:]))
+            else:
+                print(f'\ninvalid command: {command}\n', self.help_me())
+        except Exception as e:
+            print(e)
 
     def handle_msg(self, msg):
         ''' message from actors - what should we do with it? '''
         print('for debug NEW MESSAGE:', message)
-        if self.mode == 'train':
-            if msg['']
+        if self.goal == 'play':
+            #vote__msg = {'id':1, 'from':[1,2,3], 'vote':{0:'up'}}
+
+            #if msg['from'] in
             # TODO:
             # count the votes or
             # hanle a death
@@ -254,21 +262,8 @@ class MasterNode():
 
     def set_mode(self, *mode: str):
         mode = mode[0]
-        if mode == 'train':
-            # TODO:
-            # erase the memory for work
-            # initialize the memory for train
-            pass
-        elif mode == 'work':
-            # TODO:
-            # erase the memory for train
-            # initialize the memory for work
-            pass
-        else:
-            # TODO:
-            # assume sleep - stop all activity, clear all memory
-            pass
-        self.mode = mode
+        self.goal = mode
+        return self.goal
 
     def set_goal(self, *goal):
         if self.mode != 'work':
@@ -291,23 +286,31 @@ class MasterNode():
         return self.act(action)
 
     def act(self, action):
+        #st = self.env.act(action)
+        #for k,v in st.items():
+        #    print(k, self.state[k], v)
         return self.analyze_state(self.env.act(action))
 
     def analyze_state(self, state) -> 'state':
-        diff_keys = [k
+        diff_keys = tuple([k
             for (k,v),(_,vv) in
-            zip(sorted(first_dict.items()), sorted(second_dict.items()))
-            if vv != v]
-        if sorted(k) not in self.registry:
+            zip(sorted(self.state.items()), sorted(state.items()))
+            if vv != v])
+        print(diff_keys, self.registry.keys())
+        if diff_keys not in self.registry.keys():
             self.make_actor(state=state, attention=diff_keys)
         return state
 
     def make_actor(self, state: dict, attention: list):
         ''' make a new actor, initialize it with state, attention and actions '''
         self.registry[attention] = True
-        actor.start_actor(
-            input=self.state,
-            action=self.action,
-            state=state,
-            attention=attention,
-            actions=self.actions)
+        self.voters = self.registry.keys()
+        # TODO: actually start the actor after we finish programming actor.
+        #actor.start_actor(
+        #    input=self.state,
+        #    action=self.action,
+        #    state=state,
+        #    attention=attention,
+        #    actions=self.actions)
+        # TODO: turn off and kill any key that is a subset of another key in the registry.
+        #       you only want to keep the longest key of any version in theory...

@@ -20,6 +20,16 @@ So the ator has 3 threads that all run concurrently.
         (mostly finds paths, analyses paths, or produces votes)
 '''
 
+'''
+I've been thinking about actor collaboration. in the naive version we can
+create a new memory sturcture that is a distilation of the relationships within
+each actor's memory: this/these state, at this value, given this action always
+produces this/these states at the most granular level possible. that way each
+actor has a predition for each way a state can change and can veto correctly.
+but the correct way isn't to veto, it's just to fill in the missing elements of
+state of a proposed action.
+'''
+
 import sys
 from threading import Thread
 
