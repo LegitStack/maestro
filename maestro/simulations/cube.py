@@ -73,7 +73,7 @@ class RubiksCube(env.Environment):
         cube = copy.deepcopy(self.state)
         for k, v in eval(f'self.do_{action[0]}').items():
             self.state[k] = cube[v]
-        return self.state
+        return self.see()
 
     def see(self) -> dict:
         return copy.deepcopy(self.state)

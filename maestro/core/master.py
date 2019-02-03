@@ -91,6 +91,7 @@ bayes approach on each actor.
 '''
 import sys
 import time
+import random
 from threading import Thread
 
 from maestro.lib import memory
@@ -113,7 +114,6 @@ class MasterNode():
         self.env = environment
         self.verbose = verbose
         self.exit = False
-        self.mode = 'sleeping'
         self.state_keys = self.env.get_state_indexes()
         self.actions = self.env.get_actions()
 
@@ -130,6 +130,7 @@ class MasterNode():
         # work responsibilities are:
         #   1. ask for goal from workers
         #   2. execute returned behaviors
+        self.last_print = ''
         self.listen_to()
 
         self.voters = self.registry.keys()
@@ -143,6 +144,9 @@ class MasterNode():
             ''' listens to user, upon command will modify configuration '''
             print('\nlistening to user input forever') if self.verbose else None
             while True:
+                if self.exit:
+                    print('\nshutting down user listening thread') if self.verbose else None
+                    sys.exit()
                 self.handle_command(command=input('\nmaestro> '))
 
         def message_board():
@@ -166,14 +170,30 @@ class MasterNode():
                 # TODO: optimize by clearing memory when msgboard gets cleared
 
         threads = []
+        threads.append(Thread(target=message_board))
         threads.append(Thread(target=user))
         try:
             for thread in threads:
                 thread.start()
+            self.main_loop()
         except (KeyboardInterrupt, SystemExit):
+            self.exit = True
             self.quit(1)
         # instead of spinning off a new thread, just start listening to board:
-        message_board()
+
+    def main_loop(self):
+        while True:
+            if self.exit:
+                print('\nshutting down main_loop thread') if self.verbose else None
+                sys.exit()
+            if self.goal == 'play':
+                self.play()
+                if self.verbose: self.show()
+            elif self.goal == 'work':
+                self.work()
+            elif self.goal == None:
+                self.sleep()
+
 
     def handle_command(self, command: str):
         ''' message from user, what should we do? '''
@@ -181,10 +201,13 @@ class MasterNode():
             'exit': self.quit,
             'help': self.help_me,
             'info': self.get_info,
-            'mode': self.set_mode,
-            'send': self.send_message,
+
+            'play': self.set_play,
+            'stop': self.set_stop,
             'goal': self.set_goal,
+
             'do': self.perform_action,
+            'send': self.send_message,
             'debug': self.debug,
         }
         try:
@@ -199,15 +222,15 @@ class MasterNode():
 
     def handle_msg(self, msg):
         ''' message from actors - what should we do with it? '''
-        print('for debug NEW MESSAGE:', message)
         if self.goal == 'play':
             #vote__msg = {'id':1, 'from':[1,2,3], 'vote':{0:'up'}}
+            # TODO: handle death
+            # hanle a death
+            # for now we decide who dies, subsets...
 
-            #if msg['from'] in
             # TODO:
             # count the votes or
-            # hanle a death
-            # birth
+            # for now we are not couting votes, just acting randomly
             pass
         else: # working mode
             # TODO:
@@ -223,12 +246,13 @@ class MasterNode():
     maestro system information:
 
     master:
-        mode: {self.mode}
+        mode: {'sleep' if self.goal==None else ('play' if self.goal == 'play' else 'work')}
         verbosity: {self.verbose}
         exit status: {self.exit}
         uptime: coming soon
         actor count: comming soon
         registry: comming soon
+        current state: {self.state}
 
     message board:
         latest message id: {self.msgboard.id}
@@ -247,27 +271,46 @@ class MasterNode():
     @staticmethod
     def help_me():
         return '''
-    commands:
+    infomational commands:
     help        - displays this message
     info        - display maestro system information
-    mode sleep  - tells workers to stop all activity
-    mode train  - tells workers to explore and learn
-    mode work   - tells workers to collaborate
-    do {goal}   - tells workers to achieve a goal
     exit        - exits maestro
-            '''
+
+    behavioral commands:
+    play        - tells workers to explore and learn
+    stop        - tells workers to stop all activity
+    goal {goal} - tesll maestro to achieve a goal
+
+    debug commands:
+    do {goal}   - tells workers to do an action
+    send {msg}  - tells maestro to send a message
+    debug {code}- tells maestro to execute code
+    '''
     def quit(self, err: int = 0):
         self.exit = True
         sys.exit()
 
-    def set_mode(self, *mode: str):
-        mode = mode[0]
-        self.goal = mode
+    #def set_mode(self, *mode: str):
+    #    mode = mode[0]
+    #    if mode == 'play':
+    #        self.goal = mode
+    #    elif mode == 'work':
+    #        self.goal = ''
+    #    elif mode == 'sleep':
+    #        self.goal = None
+    #    return self.goal
+
+    def set_play(self):
+        self.goal = 'play'
+        return self.goal
+
+    def set_stop(self):
+        self.goal = None
         return self.goal
 
     def set_goal(self, *goal):
-        if self.mode != 'work':
-            self.set_mode('work')
+        if self.goal == 'play' or self.goal == None:
+            self.goal == ''
         if len(goal) == self.state_keys:
             self.working_master.goal = {k:v for k,v in zip(self.state_keys, goal)}
         else:
@@ -286,9 +329,6 @@ class MasterNode():
         return self.act(action)
 
     def act(self, action):
-        #st = self.env.act(action)
-        #for k,v in st.items():
-        #    print(k, self.state[k], v)
         return self.analyze_state(self.env.act(action))
 
     def analyze_state(self, state) -> 'state':
@@ -296,9 +336,16 @@ class MasterNode():
             for (k,v),(_,vv) in
             zip(sorted(self.state.items()), sorted(state.items()))
             if vv != v])
-        print(diff_keys, self.registry.keys())
         if diff_keys not in self.registry.keys():
-            self.make_actor(state=state, attention=diff_keys)
+            save = True
+            for keys in self.registry.keys():
+                if len(diff_keys) < len(keys):
+                    if set(diff_keys).issubset(keys):
+                        save = False
+                elif set(keys).issubset(diff_keys):
+                    self.registry[keys] = False
+            if save:
+                self.make_actor(state=state, attention=diff_keys)
         return state
 
     def make_actor(self, state: dict, attention: list):
@@ -314,3 +361,41 @@ class MasterNode():
         #    actions=self.actions)
         # TODO: turn off and kill any key that is a subset of another key in the registry.
         #       you only want to keep the longest key of any version in theory...
+
+    #def explore(self):
+    #    return self.act(random.choice(action))
+
+    ### main ###################################################################
+
+    def show_old(self):
+        str1 = f'state: {self.state}, act:{self.action}'
+        back="\b"*len(str1)
+        print(str1, end="")
+        print(back, end="")
+        #sys.stdout.flush()
+
+    def show(self):
+        counter = 0
+        for x in self.registry:
+            if self.registry[x]:
+                counter += 1
+        info = f'state: {str(self.state)[:10]}  |  action: {str(self.action)[:10]}  |  registry: {counter}'
+        if self.last_print == 'show':
+            print(info, end="\r", flush=True)
+        else:
+            print('')
+            print(info, end="\r", flush=True)
+            self.last_print = 'show'
+
+
+    def play(self):
+        self.action = random.choice(self.actions)
+        self.state = self.act(self.action[0])
+        return self.msgboard.add_message(
+            {'from':'master', 'state':self.state, 'action':self.action})
+
+    def sleep(self):
+        time.sleep(1)
+
+    def work(self):
+        time.sleep(1)
