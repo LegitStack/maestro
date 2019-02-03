@@ -151,7 +151,7 @@ class MasterNode():
                     sys.exit()
                 try:
                     self.handle_command(command=input('\nmaestro> '))
-                exept:
+                except:
                     self.quit()
 
         def message_board():
@@ -386,7 +386,8 @@ class MasterNode():
                         self.registry[keys] = False
                         self.msgboard.add_message({'from':'master', 'to':keys, 'command':'die'})
                 if save:
-                    self.make_actor(state=state, attention=changed_keys)
+                    self.make_actor(state=state, attention=changed_keys,)
+
 
         changed_keys = get_keys_that_changed(state)
         manage_registry(changed_keys)
@@ -398,8 +399,10 @@ class MasterNode():
         self.voters = self.registry.keys()
         # TODO: actually start the actor after we finish programming actor.
         actor.start_actor(
+            state=state,
             attention=attention,
             actions=self.actions,
+            msgboard=self.msgboard,
             verbose=self.verbose,)
         # TODO: turn off and kill any key that is a subset of another key in the registry.
         #       you only want to keep the longest key of any version in theory...

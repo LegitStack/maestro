@@ -21,15 +21,20 @@ So the ator has 3 threads that all run concurrently.
 '''
 
 import sys
+import time
 from threading import Thread
 
+from maestro.lib import memory
+from maestro.lib import message_board
 
 def start_actor(
+        state: dict,
         attention: list,
         actions: 'list(dict)',
+        msgboard: message_board.MSGBoard,
         verbose: bool,
     ) -> bool:
-    actor = ActorNode(attention, actions, verbose)
+    actor = ActorNode(state, attention, actions, msgboard, verbose)
     return True
 
 
@@ -37,11 +42,17 @@ class ActorNode():
     ''' unit of reactive memory/computation '''
 
     def __init__(self,
+        state: dict,
         attention: list,
         actions: 'list(dict)',
+        msgboard: message_board.MSGBoard,
         verbose: bool = False,
     ):
         ''' actor nodes contain little memory '''
+        self.structure = memory.create_memory_from_input(state, actions[0])
+        self.attention = attention
+        self.actions = actions
+        self.msgboard = msgboard
         self.verbose = verbose
         self.exit = False
         self.listen_to()
@@ -73,17 +84,13 @@ class ActorNode():
                 #missing_ids = sorted(set(range(min(seen_ids), max(seen_ids) + 1)).difference(seen_ids))
                 # TODO: optimize by clearing memory when msgboard gets cleared
 
-        def main_loop(self):
+        def main_loop():
             while True:
+                time.sleep(1)
                 if self.exit:
                     print(f'\nactor {self.attention} shutting down main_loop thread') if self.verbose else None
                     self.quit()
-                if self.goal == 'play':
-                    self.play()
-                    if self.verbose: self.show()
-                else:
-                    self.sleep()
-
+                # TODO: enry to training and goal oriented behaviors
 
         threads = []
         threads.append(Thread(target=message_board))
