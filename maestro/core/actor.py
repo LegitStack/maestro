@@ -69,7 +69,6 @@ class ActorNode():
             print(f'\nactor {self.attention} listening to message_board input forever') if self.verbose else None
             seen_ids = []
             while True:
-                time.sleep(1)
                 if self.exit:
                     print(f'\nactor {self.attention} shutting down message_board listening thread') if self.verbose else None
                     sys.exit()
@@ -86,7 +85,6 @@ class ActorNode():
 
         def main_loop():
             while True:
-                time.sleep(1)
                 if self.exit:
                     print(f'\nactor {self.attention} shutting down main_loop thread') if self.verbose else None
                     self.quit()
@@ -117,6 +115,9 @@ class ActorNode():
 
     def handle_master_command(self, msg):
         '''{'from':'master', 'to':keys, 'command':'die'}'''
+        if (msg['command'] == 'ping' and
+        (msg['to'] == self.attention or msg['to'] == 'all')):
+            self.msgboard.add_message({'from':self.attention, 'to':'master', 'response':'ping'})
         if (msg['command'] == 'die' and
         (msg['to'] == self.attention or msg['to'] == 'all')):
             quit(self)

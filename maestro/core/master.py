@@ -292,6 +292,8 @@ class MasterNode():
     debug {code}- tells maestro to execute code
     '''
     def quit(self, err: int = 0):
+        self.msgboard.add_message({'from':'master', 'to':'all', 'command':'die'})
+        time.sleep(10)
         self.exit = True
         sys.exit()
 
