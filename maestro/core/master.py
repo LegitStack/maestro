@@ -94,7 +94,7 @@ import sys
 import time
 import copy
 import random
-from threading import Thread
+import threading
 
 from maestro.lib import memory
 from maestro.lib import train_master
@@ -124,15 +124,19 @@ class MasterNode():
         self.action = {}
 
         self.goal = None
-        self.train = train_master.TrainMaster(self.state_keys, self.actions)
+        self.last_print = ''
+
+        self.new = True
+
+        #self.train = train_master.TrainMaster(self.state_keys, self.actions)
         # train responsibilities are:
         #   1. manage a registry of actors
         #   2. count votes for behaviors
-        self.work = work_master.WorkMaster(self.state_keys, self.actions)
+        #self.work = work_master.WorkMaster(self.state_keys, self.actions)
         # work responsibilities are:
         #   1. ask for goal from workers
         #   2. execute returned behaviors
-        self.last_print = ''
+
         self.listen_to()
 
         self.voters = self.registry.keys()
@@ -176,8 +180,8 @@ class MasterNode():
                 # TODO: optimize by clearing memory when msgboard gets cleared
 
         threads = []
-        threads.append(Thread(target=message_board))
-        threads.append(Thread(target=user))
+        threads.append(threading.Thread(target=message_board))
+        threads.append(threading.Thread(target=user))
         try:
             for thread in threads:
                 thread.start()
@@ -193,7 +197,7 @@ class MasterNode():
                 self.quit()
             if self.goal == 'play':
                 self.play()
-                if self.verbose: self.show()
+                #if self.verbose: self.show()
             elif self.goal == 'work':
                 self.work()
             elif self.goal == None:
@@ -254,7 +258,7 @@ class MasterNode():
         verbosity: {self.verbose}
         exit status: {self.exit}
         uptime: coming soon
-        actor count: comming soon
+        thread count: (threads - 2 per actor, 3 for master) {threading.active_count()}
         registry: {[str(k) + ':' + str(len(k)) for k,v in self.registry.items() if v]}
         current state: {self.state}
 
@@ -291,6 +295,7 @@ class MasterNode():
     send {msg}  - tells maestro to send a message
     debug {code}- tells maestro to execute code
     '''
+
     def quit(self, err: int = 0):
         self.msgboard.add_message({'from':'master', 'to':'all', 'command':'die'})
         time.sleep(10)
@@ -302,6 +307,9 @@ class MasterNode():
         return self.goal
 
     def set_stop(self):
+        if self.new:
+            self.new = False
+            self.create_actors()
         self.goal = None
         return self.goal
 
@@ -399,15 +407,27 @@ class MasterNode():
         ''' make a new actor, initialize it with state, attention and actions '''
         self.registry[attention] = True
         self.voters = self.registry.keys()
-        # TODO: actually start the actor after we finish programming actor.
-        actor.start_actor(
-            state=state,
-            attention=attention,
-            actions=self.actions,
-            msgboard=self.msgboard,
-            verbose=self.verbose,)
-        # TODO: turn off and kill any key that is a subset of another key in the registry.
-        #       you only want to keep the longest key of any version in theory...
+        if not self.new:
+            actor.start_actor(
+                state=state,
+                attention=attention,
+                actions=self.actions,
+                msgboard=self.msgboard,
+                verbose=self.verbose,)
+
+    def create_actors(self):
+        ''' create actors for the first time afer we've quickly explored the env '''
+        for attention, status in self.registry.items():
+            if status:
+                actor.start_actor(
+                    state=self.state,
+                    attention=attention,
+                    actions=self.actions,
+                    msgboard=self.msgboard,
+                    verbose=self.verbose,)
+
+
+
 
     #def explore(self):
     #    return self.act(random.choice(action))

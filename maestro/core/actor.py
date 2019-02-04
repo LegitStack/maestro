@@ -19,7 +19,7 @@ So the ator has 3 threads that all run concurrently.
     3.  performs serial computation at the behest of the others
         (mostly finds paths, analyses paths, or produces votes)
 '''
-
+import os
 import sys
 import time
 from threading import Thread
@@ -66,7 +66,7 @@ class ActorNode():
 
         def message_board():
             ''' upon notification will take actions, modulated by configuration '''
-            print(f'\nactor {self.attention} listening to message_board input forever') if self.verbose else None
+            print(f'\nactor pid: {os.getpid()}, name:{str(self.attention)[:10]} {len(self.attention)} listening to message_board input forever') if self.verbose else None
             seen_ids = []
             while True:
                 if self.exit:
@@ -120,7 +120,7 @@ class ActorNode():
             self.msgboard.add_message({'from':self.attention, 'to':'master', 'response':'ping'})
         if (msg['command'] == 'die' and
         (msg['to'] == self.attention or msg['to'] == 'all')):
-            quit(self)
+            self.quit()
         # TODO: other commands ...
 
     def handle_master_goal(self, msg):
