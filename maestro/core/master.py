@@ -431,3 +431,12 @@ class MasterNode():
 
     #def explore(self):
     #    return self.act(random.choice(action))
+
+
+
+# TODO: IMPLEMENT OBSERVER MODEL INSTEAD!!! use ReactiveX
+# https://github.com/ReactiveX/RxPY/tree/master/examples
+# https://pypi.org/project/Rx/
+# https://www.youtube.com/watch?v=tQA8I8yMxxM
+# https://www.youtube.com/watch?v=nFlc1PU7ZDc
+# https://www.youtube.com/watch?v=4CG_P_7e-GQ
