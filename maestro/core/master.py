@@ -440,3 +440,48 @@ class MasterNode():
 # https://www.youtube.com/watch?v=tQA8I8yMxxM
 # https://www.youtube.com/watch?v=nFlc1PU7ZDc
 # https://www.youtube.com/watch?v=4CG_P_7e-GQ
+#https://stackoverflow.com/questions/40499153/rxpy-turn-live-twitter-stream-into-rx-observable
+#https://hackernoon.com/observer-vs-pub-sub-pattern-50d3b27f838c
+
+#from rx import Observer
+#import rx
+#source = rx.Observable.from_list([1,2,3])
+#class PrintObserver(rx.Observer):
+#    def on_next(self, value):
+#        print(f'got {value}')
+#    def on_completed(self):
+#        print('done')
+#    def on_error(self, error):
+#        print(f'error {error}')
+#source.subscribe(PrintObserver())
+##got 1
+##got 2
+##got 3
+##done
+#source.subscribe(lambda value: print(f'got {value}!'))
+##got 1!
+##got 2!
+##got 3!
+#import sys
+#source = rx.Observable.from_(sys.stdin)
+#source.subscribe(lambda value: print(f'got {value}!'))
+#hi there
+#got hi there
+#!
+#whats up bro
+#got whats up bro
+#!
+#>>> alist= [1,2,3]
+#>>> source = rx.Observable.from_list(alist)
+#>>> source.subscribe(lambda value: print(f'got {value}!'))
+#got 1!
+#got 2!
+#got 3!
+#<rx.disposables.anonymousdisposable.AnonymousDisposable object at 0x000001FF1240FFD0>
+#>>> alist.append('hi')
+#>>> source.subscribe(lambda value: print(f'got {value}!'))
+#got 1!
+#got 2!
+#got 3!
+#got hi!
+#
