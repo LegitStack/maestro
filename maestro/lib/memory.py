@@ -120,14 +120,16 @@ def append_memory_action_result(
         action: dict,
         result: dict) -> pd.DataFrame:
     ''' inputs are usually saved before actions and results '''
+    condition = produce_conditions(memory=memory, column='input', map=input)
     memory.loc[
-        produce_conditions(memory=memory, column='input', map=input),
+        condition,
         ('action', [ke for ke, _ in sorted(action.items())])
     ] = [val for _, val in sorted(action.items())]
     memory.loc[
-        produce_conditions(memory=memory, column='input', map=input),
+        condition,
         ('result', [ke for ke, _ in sorted(result.items())])
     ] = [val for _, val in sorted(result.items())]
+    print([ke for ke, _ in sorted(action.items())], [val for _, val in sorted(action.items())])
     return memory.drop_duplicates()
 
 
