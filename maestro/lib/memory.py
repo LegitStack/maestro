@@ -67,7 +67,7 @@ def append_input(
     index = pd.MultiIndex.from_tuples(tuples)
     values = [
         [v for _,v in sorted(input.items())] +
-        [None for _,v in sorted(memory['action'].columns)] +
+        [None for _ in sorted(memory['action'].columns)] +
         [None for _,v in sorted(input.items())]]
     memory = pd.concat([memory, pd.DataFrame(list(values), columns=index)], ignore_index=True)
     return memory.drop_duplicates()
@@ -129,7 +129,6 @@ def append_memory_action_result(
         condition,
         ('result', [ke for ke, _ in sorted(result.items())])
     ] = [val for _, val in sorted(result.items())]
-    print([ke for ke, _ in sorted(action.items())], [val for _, val in sorted(action.items())])
     return memory.drop_duplicates()
 
 

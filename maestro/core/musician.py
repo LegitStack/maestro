@@ -25,8 +25,10 @@ class MusicianNode():
         actions: 'list(dict)',
         verbose: bool = False,
     ):
-        self.structure = memory.create_memory_from_input(state, actions[0])
         self.attention = attention
+        self.structure = memory.create_memory_from_input(
+            input=self.parse_state(state),
+            action=actions[0])
         self.actions = actions
         self.verbose = verbose
         self.exit = False
@@ -97,7 +99,6 @@ class MusicianNode():
         last = None if 'last state' not in msg.keys() else self.parse_state(msg['last state'])
         action = None if 'action' not in msg.keys() else msg['action']
         current = self.parse_state(msg['state'])
-        print(action)
         self.update_memory(state=current, action=action, last=last)
 
     def update_memory(self, state: dict, action: dict = None, last: dict = None):
@@ -108,9 +109,11 @@ class MusicianNode():
                 memory=self.structure,
                 input=state)
         else:
-            print('IN ELSE',last)
             self.structure = memory.append_memory_action_result(
                 memory=self.structure,
                 input=last,
                 action=action,
                 result=state,)
+            self.structure = memory.append_input(
+                memory=self.structure,
+                input=state)

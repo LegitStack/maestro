@@ -77,9 +77,6 @@ class ConductorNode():
                     self.quit()
 
         threads = []
-        # right now there's no need for message_board.
-        # perhaps the message_board is how musicians collaborate?
-        #threads.append(threading.Thread(target=message_board))
         threads.append(threading.Thread(target=user))
         try:
             for thread in threads:
@@ -120,6 +117,7 @@ class ConductorNode():
             'clear': self.clear_screen,
         }
         try:
+            self.last_print = ''
             if command in commands.keys() and ' ' not in command:
                 print('\n', commands[command]())
             elif command.split()[0] in [com.split()[0] for com in commands.keys()]:
@@ -203,8 +201,6 @@ class ConductorNode():
     '''
 
     def quit(self, err: int = 0):
-        # unnecessary
-        #self.broadcast({'from':'conductor', 'to':'all', 'command':'die'})
         self.exit = True
         sys.exit()
 
