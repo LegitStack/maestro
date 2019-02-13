@@ -33,7 +33,7 @@ class ConductorNode():
         self.action = {}
 
         self.registry: 'dict(set(attention): bool)' = {}
-        self.children: 'dict(set(attention): musician)' = {}
+        self.musicians: 'dict(set(attention): musician)' = {}
 
         self.goal = None
 
@@ -50,14 +50,14 @@ class ConductorNode():
         if not self.new:
             for name, active in self.registry.items():
                 if active:
-                    self.children[name].add_message(msg)
+                    self.musicians[name].add_message(msg)
         return msg
 
     def hear(self):
         if not self.new:
             for name, active in self.registry.items():
                 if active:
-                    self.children[name].process_last_message()
+                    self.musicians[name].process_last_message()
 
     ### listen #################################################################
 
@@ -162,23 +162,20 @@ class ConductorNode():
         latest action: {self.action}
 
     musicians:
-        busy musicians: {[f'{k}:{len(self.children[k].inbox)} '
+        busy musicians: {[f'{k}:{len(self.musicians[k].inbox)} '
             for k,v in self.registry.items()
-            if v and len(self.children[k].inbox) > 0]}
-        musicians memory: {[f'{k}:{len(self.children[k].structure)} '
+            if v and len(self.musicians[k].inbox) > 0]}
+        musicians memory: {[f'{k}:{len(self.musicians[k].structure)} '
             for k,v in self.registry.items()
-            if v and len(self.children[k].structure) > 0]}
-
+            if v and len(self.musicians[k].structure) > 0]}
 
     environment:
+        name: {self.env.name}
         env: {self.env}
         state indicies: {self.state_keys}
         available actions: {self.env.get_actions()}
 
-    musicians:
-        comming soon
-
-            '''
+    '''
 
     @staticmethod
     def help_me():
@@ -314,7 +311,7 @@ class ConductorNode():
         self.registry[attention] = True
         self.voters = self.registry.keys()
         if not self.new:
-            self.children[attention] = musician.MusicianNode(
+            self.musicians[attention] = musician.MusicianNode(
                 state=state,
                 attention=attention,
                 actions=self.actions,
@@ -324,7 +321,7 @@ class ConductorNode():
         ''' create musicians for the first time afer we've quickly explored the env '''
         for attention, status in self.registry.items():
             if status:
-                self.children[attention] = musician.MusicianNode(
+                self.musicians[attention] = musician.MusicianNode(
                     state=self.state,
                     attention=attention,
                     actions=self.actions,

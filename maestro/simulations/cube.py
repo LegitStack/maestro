@@ -6,6 +6,7 @@ from maestro.simulations import env
 class RubiksCube(env.Environment):
     ''' simulates a Rubiks Cube with a 20 cube representaiton '''
     def __init__(self):
+        self.name = 'Rubiks_Cube_3x3'
         self.state = {
             1: 'top', 2: 'top', 3: 'top', 4: 'top',
             5: 'top', 6: 'top', 7: 'top', 8: 'top',

@@ -4,22 +4,14 @@ MusicianNode:
     collaborates with those near him
     under the direction of the conductor
 '''
-import os
-import sys
-import time
-from threading import Thread
-
 from maestro.lib import memory
-from maestro.lib import message_board
 
-
-# TODO: make musician a subscriber.
-# https://www.protechtraining.com/blog/post/tutorial-the-observer-pattern-in-python-879
 
 class MusicianNode():
     ''' unit of memory/computation '''
 
-    def __init__(self,
+    def __init__(
+        self,
         state: dict,
         attention: list,
         actions: 'list(dict)',
@@ -33,6 +25,12 @@ class MusicianNode():
         self.verbose = verbose
         self.exit = False
         self.inbox = []
+
+        # memory structure index(es) values, action, results
+        self.basics = memory.create_memory_from_input(
+            input={k: '-' for k, _ in self.parse_state(state).items()},
+            action={k: '-' for k, _ in actions[0].items()})
+        self.words = {}  # indicies effected : [sequence sig, sequence sig]
 
     def add_message(self, msg):
         self.inbox.append(msg)
@@ -89,18 +87,21 @@ class MusicianNode():
 
     ### helper #################################################################
 
-    def parse_state(self, state: dict):
+    def parse_state(self, state: dict) -> dict:
         ''' trim state down to only what we pay attention to '''
         return {name: state[name] for name in self.attention}
 
     def save_memory(self, msg):
-        ''' parse state. if I remember a preivous state save a memory (append action
-            and state as result), if not make a partial memory (input only). '''
+        ''' parse state. if I remember a preivous state save a memory (append
+        action and state as result), if not make a partial memory (input only).'''
         last = None if 'last state' not in msg.keys() else self.parse_state(msg['last state'])
         action = None if 'action' not in msg.keys() else msg['action']
         current = self.parse_state(msg['state'])
         self.update_memory(state=current, action=action, last=last)
 
+    # TODO: fix -- sometimes it will leave none in results after stop, tune.
+    #       discovered this is because sometimes the action isn't saved?
+    #       (current work around is to remove those during rest.)
     def update_memory(self, state: dict, action: dict = None, last: dict = None):
         ''' if preivous state is not given make a partial memory (input only)
             else save a memory (append action and state as result) '''
@@ -117,3 +118,27 @@ class MusicianNode():
             self.structure = memory.append_input(
                 memory=self.structure,
                 input=state)
+
+    def rest(self):
+        ''' during rest we learn from data we've seen. first we derive basics,
+            then we compile words (shared models of sequence across nodes) '''
+        self.derive_basics()
+        self.compile_words()
+
+    def derive_basics(self):
+        ''' since this is simple environment and a naive system each input
+            index(s) + action pair should have a predictable result. '''
+        # clean up structure - this isn't necessary and introduces complications
+
+        # clean up basics
+        #self.basics = self.basics[]
+
+
+        # figure basics out -
+        #   look for things that are always the same
+        #   only record the smallest grain possible
+        pas 
+
+    def compile_words(self):
+        ''' collaborate with other musicians to compile words'''
+        pass

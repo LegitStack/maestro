@@ -6,6 +6,7 @@ from maestro.simulations import env
 class NumberLine(env.Environment):
     ''' simulates a Rubiks Cube with a 20 cube representaiton '''
     def __init__(self):
+        self.name = 'numberline_base_10_3_digits'
         self.state = 0
         self.actions = [{0:'up'}, {0:'down'}, {0:'doubleup'}, {0:'fivedown'}]
 
