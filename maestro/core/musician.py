@@ -4,7 +4,10 @@ MusicianNode:
     collaborates with those near him
     under the direction of the conductor
 '''
+import pandas
+
 from maestro.lib import memory
+from maestro.lib import sleep
 
 
 class MusicianNode():
@@ -27,9 +30,10 @@ class MusicianNode():
         self.inbox = []
 
         # memory structure index(es) values, action, results
-        self.basics = memory.create_memory_from_input(
-            input={k: '-' for k, _ in self.parse_state(state).items()},
-            action={k: '-' for k, _ in actions[0].items()})
+        #self.basics = memory.create_memory_from_input(
+        #    input={k: '-' for k, _ in self.parse_state(state).items()},
+        #    action={k: '-' for k, _ in actions[0].items()})
+        self.basics = pd.DataFrame()
         self.words = {}  # indicies effected : [sequence sig, sequence sig]
 
     def add_message(self, msg):
@@ -128,17 +132,7 @@ class MusicianNode():
     def derive_basics(self):
         ''' since this is simple environment and a naive system each input
             index(s) + action pair should have a predictable result. '''
-        # clean up structure - this isn't necessary and introduces complications
-
-        # clean up basics
-        #self.basics = self.basics[]
-
-
-        # figure basics out -
-        #   look for things that are always the same
-        #   only record the smallest grain possible
-        #for index of input and action:
-        #    see if it has a predictable response
+        self.basics = sleep.sleep(self.structure)
         pass
 
     def compile_words(self):
