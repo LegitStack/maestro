@@ -32,6 +32,21 @@ def sleep(memory: pd.DataFrame) -> pd.DataFrame:
                                 ignore_index=True)
     return basics
 
-def query_sleep():
-    ''' answers if I do this action, with this input, what result should I see?'''
-    pass
+def query_sleep(memory: pd.DataFrame, dmap: dict, action: str):
+    ''' answers if I do this action, with this input, what result should I see?
+        see simplify notebook to see dmap format  '''
+    answer = {}
+    for k, v in dmap.items():
+        answer[k] = None
+    for k, v in dmap.items():
+        if v:
+            for key, n in answer.items():
+                if n is None:
+                    res = memory[
+                        (memory['input_index'] == k)&
+                        (memory['input_value'] == v)&
+                        (memory['result_index'] == key)&
+                        (memory['action_value'] == action)
+                    ]['result_value'].unique()
+                    answer[key] = res[0] if len(res) > 0 else None
+    return answer
