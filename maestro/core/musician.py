@@ -137,7 +137,9 @@ class MusicianNode():
         # figure basics out -
         #   look for things that are always the same
         #   only record the smallest grain possible
-        pas 
+        #for index of input and action:
+        #    see if it has a predictable response
+        pass
 
     def compile_words(self):
         ''' collaborate with other musicians to compile words'''

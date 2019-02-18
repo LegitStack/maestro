@@ -92,3 +92,5 @@ data/final/*
 nul
 
 !cookiecutter.json
+
+*musicians_data*

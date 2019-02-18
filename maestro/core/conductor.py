@@ -115,6 +115,7 @@ class ConductorNode():
             'send': self.send_message,
             'debug': self.debug,
             'clear': self.clear_screen,
+            'pickle': self.export_pickle,
         }
         try:
             self.last_print = ''
@@ -176,6 +177,15 @@ class ConductorNode():
         available actions: {self.env.get_actions()}
 
     '''
+
+    def export_pickle(self):
+        try:
+            os.mkdir('musicians_data')
+        except:
+            pass
+        for k,v in self.registry.items():
+            if v:
+                self.musicians[k].structure.to_pickle(f'musicians_data/{k}.pkl')
 
     @staticmethod
     def help_me():
