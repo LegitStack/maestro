@@ -59,6 +59,11 @@ class ConductorNode():
                 if active:
                     self.musicians[name].process_last_message()
 
+    def nap(self):
+        for name, active in self.registry.items():
+            if active:
+                self.musicians[name].rest()
+
     ### listen #################################################################
 
     def listen_to(self):
@@ -109,6 +114,7 @@ class ConductorNode():
             'info': self.get_info,
             'tune': self.set_tune,
             'stop': self.set_stop,
+            'sleep': self.nap,
             'play': self.set_goal,
             'goal': self.set_goal,
             'do': self.perform_action,
@@ -198,6 +204,7 @@ class ConductorNode():
     behavioral commands:
     tune        - tells musicians to explore and learn
     stop        - tells musicians to stop all activity
+    sleep       - tells musicians to condense memory
     play {goal} - tells maestro to achieve a goal
     exit        - exits maestro
 
@@ -205,6 +212,7 @@ class ConductorNode():
     do {goal}   - tells musicians to do an action
     send {msg}  - tells maestro to send a message
     debug {code}- tells maestro to execute code
+    pickle      - exports pickles of musicians minds
     '''
 
     def quit(self, err: int = 0):

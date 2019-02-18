@@ -4,7 +4,7 @@ MusicianNode:
     collaborates with those near him
     under the direction of the conductor
 '''
-import pandas
+import pandas as pd
 
 from maestro.lib import memory
 from maestro.lib import sleep
