@@ -1,4 +1,5 @@
 import copy
+import random
 
 from maestro.simulations import env
 
