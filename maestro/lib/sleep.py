@@ -16,13 +16,13 @@ def sleep(memory: pd.DataFrame) -> pd.DataFrame:
         'action_index', 'action_value',
         'result_index', 'result_value'])
     for index, row in memory.iterrows():
-        for icol in range(1, 21):
-            for acol in range(0, 1):
+        for icol in memory['input'].columns:
+            for acol in memory['action'].columns:
                 temp = memory[
                     (memory[('input', icol)] == row[('input', icol)]) &
                     (memory[('action', acol)] == row[('action', acol) ])]
                 if temp.shape[0] > 1:
-                    for rcol in range(1, 21):
+                    for rcol in memory['result'].columns:
                         answer = temp[('result', rcol)].unique()
                         if answer.shape[0] == 1:
                             basics = basics.append({

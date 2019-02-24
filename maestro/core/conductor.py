@@ -115,6 +115,7 @@ class ConductorNode():
             'tune': self.set_tune,
             'stop': self.set_stop,
             'sleep': self.nap,
+            'dream': self.examine_sleep,
             'play': self.set_goal,
             'goal': self.set_goal,
             'do': self.perform_action,
@@ -187,11 +188,22 @@ class ConductorNode():
     def export_pickle(self):
         try:
             os.mkdir('musicians_data')
+            for k,v in self.registry.items():
+                if v:
+                    self.musicians[k].structure.to_pickle(f'musicians_data/{k}.pkl')
         except:
-            pass
-        for k,v in self.registry.items():
-            if v:
-                self.musicians[k].structure.to_pickle(f'musicians_data/{k}.pkl')
+            print('unable to make directory')
+
+
+    def examine_sleep(self):
+        try:
+            os.mkdir('musicians_data')
+        except:
+            print('unable to make directory')
+            for k,v in self.registry.items():
+                if v:
+                    self.musicians[k].basics.to_pickle(f'musicians_data/dreams-{k}.pkl')
+
 
     @staticmethod
     def help_me():

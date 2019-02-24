@@ -133,7 +133,6 @@ class MusicianNode():
         ''' since this is simple environment and a naive system each input
             index(s) + action pair should have a predictable result. '''
         self.basics = sleep.sleep(self.structure)
-        pass
 
     def compile_words(self):
         ''' collaborate with other musicians to compile words'''
