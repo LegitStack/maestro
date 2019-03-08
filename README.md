@@ -1,3 +1,5 @@
+[![Open Source Helpers](https://www.codetriage.com/legitstack/maestro/badges/users.svg)](https://www.codetriage.com/legitstack/maestro)
+
 # maestro
 
 https://www.maestroai.com
