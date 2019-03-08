@@ -12,6 +12,65 @@ maestro is an actor-model framework for creating intelligent autonomous actors.
 maestro is currently in a prototype phase.
 
 
+## Project Details:
+
+### What is the basic idea?
+We are creating a "Markov compatible sensorimotor inference engine."
+
+### What does that mean?
+"Sensorimotor" refers to a program that gets input (sensory data) and produces output (motor commands). In other words, it's in a continuous loop with the environment (the environment being a puzzle or maze).
+
+"Inference engine" means that it figures out how its motor commands affect the environment. It does this by paying close attention to how its sensory input changes based upon what its motor commands were.
+
+Lastly, being "Markov compatible" simply means the environment constrained to be simple: a static state-space that is fully observable, even though it may be very large. The proof of concept won't be able to handle anything more complex than that.
+
+### What is the basic design?
+The proof of concept design can be understood as a network of nodes that all talk to each other and share information to understand the environment they're placed in.
+
+Each node can see a portion of the environment, remembers certain things about the past, and can talk to any or all of the other nodes.
+
+They basically propose and vote on what choices to make in order for the majority of them to make sense of the world, though each only sees a small portion of it.
+
+What makes it General AI as opposed to regular AI?
+The idea is that you can categorize environments based upon their features and complexity. Thus if the AI can learn how to manipulate a certain type of environment it can learn to manipulate every possible environment, ever possible puzzle, that conforms to that type. Thus it is generalized.
+
+We have identified the following key features of environments that can be combined define its type:
+
+1. Environments can be large or small. If it's large they are too big for one node to ever possibly understand, if they are small they are not memory intensive; one node can memorize the whole thing.
+
+2. Environments can have a static state-space that is fully observable or a non-static one. This essentially means there are other actors changing things in the environment, and that the Maestro AI actor is not the only agent acting on the environment.
+
+3. Environments can have symmetric/repeating sensory patterns or the state space can be arranged somewhat randomly. This is talking about an environment's entropy.
+
+4. Environments behaviors (what the AI can do) can have symmetric effects on the environment (such as going right undoes the effect of going left) or non-symmetric effects.
+
+this creates a matrix of 8 different types of environments ranging from simple to complex. For example, here's the simplest possible environment (2x2 rubix cube):
+
+small
+static state-space, fully observable
+symmetric/repeating sensory patterns
+behaviors have symmetric effects
+Here is the environment type we hope to be able to manage with our proof of concept (3x3 rubix cube):
+
+large or infinite (memory intensive, multiple nodes required).
+static state-space, fully observable
+symmetric/repeating sensory patterns
+behaviors have symmetric effects 
+And here is a complex environment that we someday hope to have Maestro AI manage effectively:
+
+large or infinite (memory intensive)
+static state-space, fully observable
+non-symmetric and not repeating sensory patterns (sensory input is high in entropy)
+behaviors do not have symmetric effects (motor effects is high in entropy).
+What is the basic philosophy?
+We consider #2 to be the most difficult problem to solve and should be left out of consideration for the time being. However, interestingly enough, we have noticed that is the problem others have tried to solve first. Chess, for example, is an environment with another player, therefore the state-space is not static, one state does not always lead to the same next state.
+
+We feel that solving AGI for simple environments is possible and should be done first; that it is an 'early optimization' mistake not to. The world is full of static systems that an AGI, such as ours, could be in charge of managing according to the goals we provide it. We feel this is an obvious niche that has been overlooked.
+
+### What does success look like?
+We will know that our proof of concept for this design is a success if we give the AGI a variety of very simple puzzles (such as a Rubix Cube, or Atari video games) and it automatically learns how to solve them without any instruction or help.
+
+
 ## Theory
 
 Each actor has 4 things: behaviors as predefined functions, input data which is
