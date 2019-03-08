@@ -38,32 +38,35 @@ We have identified the following key features of environments that can be combin
 
 1. Environments can be large or small. If it's large they are too big for one node to ever possibly understand, if they are small they are not memory intensive; one node can memorize the whole thing.
 
-2. Environments can have a static state-space that is fully observable or a non-static one. This essentially means there are other actors changing things in the environment, and that the Maestro AI actor is not the only agent acting on the environment.
+2. Environments can have symmetric/repeating sensory patterns or the state space can be arranged somewhat randomly. This is talking about an environment's entropy.
 
-3. Environments can have symmetric/repeating sensory patterns or the state space can be arranged somewhat randomly. This is talking about an environment's entropy.
+3. Environments behaviors (what the AI can do) can have symmetric effects on the environment (such as going right undoes the effect of going left) or non-symmetric effects.
 
-4. Environments behaviors (what the AI can do) can have symmetric effects on the environment (such as going right undoes the effect of going left) or non-symmetric effects.
+4. Environments can have a static state-space that is fully observable or a non-static one. This essentially means there are other actors changing things in the environment, and that the Maestro AI actor is not the only agent acting on the environment.
 
 this creates a matrix of 8 different types of environments ranging from simple to complex. For example, here's the simplest possible environment (2x2 rubix cube):
 
-small
-static state-space, fully observable
-symmetric/repeating sensory patterns
-behaviors have symmetric effects
+- small
+- symmetric/repeating sensory patterns
+- behaviors have symmetric effects
+- static state-space, fully observable
+
 Here is the environment type we hope to be able to manage with our proof of concept (3x3 rubix cube):
 
-large or infinite (memory intensive, multiple nodes required).
-static state-space, fully observable
-symmetric/repeating sensory patterns
-behaviors have symmetric effects 
+- large or infinite (memory intensive, multiple nodes required).
+- symmetric/repeating sensory patterns
+- behaviors have symmetric effects 
+- static state-space, fully observable
+
 And here is a complex environment that we someday hope to have Maestro AI manage effectively:
 
-large or infinite (memory intensive)
-static state-space, fully observable
-non-symmetric and not repeating sensory patterns (sensory input is high in entropy)
-behaviors do not have symmetric effects (motor effects is high in entropy).
-What is the basic philosophy?
-We consider #2 to be the most difficult problem to solve and should be left out of consideration for the time being. However, interestingly enough, we have noticed that is the problem others have tried to solve first. Chess, for example, is an environment with another player, therefore the state-space is not static, one state does not always lead to the same next state.
+- large or infinite (memory intensive)
+- non-symmetric and not repeating sensory patterns (sensory input is high in entropy)
+- behaviors do not have symmetric effects (motor effects is high in entropy).
+- static state-space, fully observable
+
+### What is the basic philosophy?
+We consider an environment that is not a fully observable static state space to be the most difficult problem to solve and should be left out of consideration for the time being. However, interestingly enough, we have noticed that is the problem others have tried to solve first. Chess, for example, is an environment with another player, therefore the state-space is not static, one state does not always lead to the same next state.
 
 We feel that solving AGI for simple environments is possible and should be done first; that it is an 'early optimization' mistake not to. The world is full of static systems that an AGI, such as ours, could be in charge of managing according to the goals we provide it. We feel this is an obvious niche that has been overlooked.
 
