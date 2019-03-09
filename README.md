@@ -215,6 +215,11 @@ solution the master will tell the human it has failed to achieve the desired
 goal.
 
 
+## Maestro Overview
+
+[![Maestro Overview](https://www.github.com/LegitStack/maestro/)](https://www.github.com/LegitStack/maestro)
+
+
 ## Installation
 
     maestro> python setup.py develop
