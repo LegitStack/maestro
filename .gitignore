@@ -85,6 +85,7 @@ data/final/*
 
 # Image files
 *.png
+!Maestro-overview.png
 
 /pm3_api/static/docs/*
 !/pm3_api/static/docs/.gitkeep
