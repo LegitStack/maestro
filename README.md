@@ -74,75 +74,47 @@ We feel that solving AGI for simple environments is possible and should be done 
 We will know that our proof of concept for this design is a success if we give the AGI a variety of very simple puzzles (such as a Rubix Cube, or Atari video games) and it automatically learns how to solve them without any instruction or help.
 
 
+
 ## Theory
 
-Each actor has 4 things: behaviors as predefined functions, input data which is
-ultimately derived from the external environment, contextual information
-received from fellow actors, and a specific goal in terms of what they should
-get their input data to look like.
+It is our belief that AGI is _necessarily_ **computation upon distributed memory** (on a network).
 
-Once you have a system defined with each actor having functionality and set to
-receive messages from the correct other actors, you train the actors by letting
-them explore their behaviors at random, attempting to achieve their goals in the
-most efficient way possible. This training is done in an isolated environment.
+Some evidence for this belief is that most sophisticated machine learning algorithms such as Neural Nets are merely simulations of a network architecture. Even simple machine learning algorithms such as decision trees is represented as a network of nodes, in a particular hierarchical structure that produces a directed acyclic graph of computation.
 
-Once the actors are trained they are put to work in the real environment. The
-idea behind this is that they can maintain, or bring about any state of that
-environment by working together and coordinating their efforts in the way they
-learned during training.
+Thus, Maestro AI is essentially just being a network of nodes, simulated in some way such as the "actor model" of programming. Maestro AI is an attempt to produce a simple, generalized method of computation upon a network of nodes. This is to be done by working in two containing paradigms:
+
+    1. Maestro is to be a Sensorimotor engine, in constant communion with its environment. That is to say it's not merely a model, applied to data, but can be thought of as a living model, constantly changing through interaction with its environment; as an actor.
+    2. Maestro is to be given, and made to understand the simplest category of environments first. There are simple environments (essentially static state spaces) and complex environment (essentially environments that change overtime regardless of maestro's actions). The Maestro Proof of Concept should first learn how to manage simple ones, rather than complex ones. This is because we want to, as its creators, learn step by step how to manage the communication of the network in order to most optimally achieve the appropriate distributed computation on distributed information for each type of environment. We need to learn the relationship between the complexity of Maestro's environment 
+
+Each actor has 4 things: behaviors as predefined functions, input data which is ultimately derived from the external environment, contextual information (communication with fellow actors), and a specific goal in terms of what they should get their input data to look like.
+
+Once you have a system defined with each actor having functionality and set to receive messages from the correct other actors, you train the actors by letting them explore their behaviors at random, attempting to achieve their goals in the most efficient way possible. This training is done in an isolated environment.
+
+Once the actors are trained they are put to work in the real environment. The idea behind this is that they can maintain, or bring about any state of that environment by working together and coordinating their efforts in the way they learned during training.
+
+Maestro AI's distributed memory, and computational infrastructure acts as an efficient path finding algorithm which can find a path from one state to any other state in the environment's state space.
 
 
-## Example
+## Real World Example
 
-A perfect use case is a web server supervisor. It is given a goal to make sure
-the website is up and that not more than one instance of the webserver is
-running. This is a single actor example. During training it can learn how its
-behaviors manipulate the environment: one function it can call kills all
-instances of the webserver while another function starts one.
+How is Maestro useful? Many structures in the world today are essentially puzzles. They're static, fully observable state-spaces in which a Maestro AI bot can be place and can naturally (unsupervised) learn how to manipulate the environment to achieve any state of the environment it is given as a goal. Thus, Maestro, Even a naive version of it could prove very powerful as specific programming would not need to be employed. 
 
-After it learns how to restart the server as soon as it crashes it can be
-deployed to the real world. It could be trained to supervise more servers than
-one and learn which functions restart which servers or what to do when there are
-complications and when it is appropriate to get a human involved.
+A perfect and extremely simple use case is a web server supervisor. Maestro would be given a goal to make sure the website is up and that not more than one instance of the webserver is running. During training it can learn how its behaviors manipulate the environment: one function it can call kills all instances of the webserver while another function starts one.
 
-Its functions can even be masks over sending messages to other actors (for
-instance to inform them of a context). If you have an distant actor trained to
-monitor or use a service that relies on the website to be up, for example, it
-can learn that when it detects the server goes down it should notify that
-distant actor so that the distant actor takes the appropriate behavior.
+After it learns how to restart the server as soon as it crashes it can be deployed to the real world. It could be trained to supervise more servers than one and learn which functions restart which servers or what to do when there are complications and when it is appropriate to get a human involved.
+
+Its functions can even be masks over sending messages to other actors (for instance to inform them of a context). If you have an distant actor trained to monitor or use a service that relies on the website to be up, for example, it can learn that when it detects the server goes down it should notify that distant actor so that the distant actor takes the appropriate behavior.
 
 
 ## Philosophy
 
-The important thing is that these connections are learned by the actors. With
-the advent of the internet, and distributed systems we expect the actor model to
-become more and more popular because of its added layer of abstraction. We
-expect computing in general to be seen more as a protocol on a network than as
-serial instructions to one machine.
+The important thing is that these connections are learned by the actors. With the advent of the internet, and distributed systems we expect the actor model to become more and more popular because of its added layer of abstraction. We expect computing in general to be seen more as a protocol on a network than as serial instructions to one machine.
 
-We expect to see more microservices and more intelligence to be injected into
-our distributed systems to make them adaptable, autonomous, resilient and
-robust. We see, therefore, the role of the programmer changing from one of
-micromanager to be one of steward and incentive designer, almost growing a
-system rather than engineering it. Less procedural and more declarative; putting
-things together before they exist.
+We expect to see more microservices and more intelligence to be injected into our distributed systems to make them adaptable, autonomous, resilient and robust. We see, therefore, the role of the programmer changing from one of micromanager to be one of steward and incentive designer, almost growing a system rather than engineering it. Less procedural and more declarative; putting things together before they exist.
 
-We view intelligence, or at least general intelligence as a network effect, an
-emergent property of arising out of the interactions of nodes on a network.
-There is a feedback loop between the protocol, or language of a network and the
-structures that the network generates both in its internal connections and in
-the composition of each node. This feedback loop is the means of amplification
-of the inherent intelligence of the system. It is a strange loop, inherently,
-homeostatic (for a time), yet inherently chaotic and unpredictable because it's
-causes recede to the edges of the environment in which it is placed and the
-depths of the nuances in its internal dialogue.
+We view intelligence, or at least general intelligence as a network effect, an emergent property of arising out of the interactions of nodes on a network. There is a feedback loop between the protocol, or language of a network and the structures that the network generates both in its internal connections and in the composition of each node. This feedback loop is the means of amplification of the inherent intelligence of the system. It is a strange loop, inherently, homeostatic (for a time), yet inherently chaotic and unpredictable because it's causes recede to the edges of the environment in which it is placed and the depths of the nuances in its internal dialogue.
 
-maestro represents an attempt to exemplify the above interpretation of what
-intelligence fundamentally is by creating a network of entirely naïve nodes that
-work together to achieve a certain goal. Their protocol does not evolve nor does
-their connections or internal computational structure to any significant degree
-but once these elements are statically created, different ways in which they can
-effect one another can be explored.
+Maestro represents an attempt to exemplify the above interpretation of what intelligence fundamentally is by creating a network of entirely naïve nodes that work together to achieve a certain goal. Their protocol does not evolve nor does their connections or internal computational structure to any significant degree but once these elements are statically created, different ways in which they can effect one another can be explored.
 
 
 ## Constraints
@@ -241,18 +213,19 @@ solution the master will tell the human it has failed to achieve the desired
 goal.
 
 
-
-
-
 ## Installation
 
-coming soon
+    maestro> python setup.py develop
 
 
 ## Getting Started
 
-coming soon
-
+    maestro> maestro                # maestro is instantiated with one node by default
+    maestro> tune                   # explore the environment with one node learning how many nodes need to be instantiated
+    maestro> stop                   # stop all behaviors and activity, instantiate the right number of worker nodes
+    maestro> tune                   # explore the environment with all nodes learning how the environment works
+    maestro> stop                   # stop all behaviors and activity
+    maestro> play <specific state>  # nodes work together with their learned memory to find a path to the goal
 
 ## Project Layout
 
@@ -270,6 +243,7 @@ Project Organization
     │   ├── bin           <-- Module: command line entry point into project.
     │   ├── config        <-- Module: configuration or settings files.
     │   ├── lib           <-- Module: common functions used by other modules.
+    |   ├── simulations   <-- Module: environment simulations.
     │   └── core          <-- Module: core functionality.
     │
     ├── database          <-- Holds state of the actors upon shutdown.
@@ -284,14 +258,12 @@ Project Organization
     │
     ├── tests             <-- Tests for source code.
     │
-    ├── simulations       <-- Environments simulations.
-    │
     ├── web               <-- Flask app web front end. Possible uses: make
     |                         documentation available or call workflow remotely.
     │
     ├── README.md         <-- README.md for developers using this project.
-    ├── make.bat          <-- Sphinx make file. `/maestro> make html`
-    ├── setup.py          <-- `/maestro> python setup.py develop`
+    ├── make.bat          <-- Skeleton Sphinx make file. `/maestro> make html`
+    ├── setup.py          <-- Skeleton `/maestro> python setup.py develop`
     └── Dockerfile        <-- Skeleton Dockerfile for creating portable image.
 
 --------
@@ -300,6 +272,6 @@ Project Organization
 
 to remake documentation:
 - delete contents of docs folder
-- run sphinx-quickstart
+- run `sphinx-quickstart`
 - specify docs folder or move files into docs folder and modify make files after
-- run make html
+- run `make html`
