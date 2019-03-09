@@ -226,13 +226,40 @@ goal.
 
 
 ## Getting Started
+```
 
-    maestro> maestro                # maestro is instantiated with one node by default
-    maestro> tune                   # explore the environment with one node learning how many nodes need to be instantiated
-    maestro> stop                   # stop all behaviors and activity, instantiate the right number of worker nodes
-    maestro> tune                   # explore the environment with all nodes learning how the environment works
-    maestro> stop                   # stop all behaviors and activity
-    maestro> play <specific state>  # nodes work together with their learned memory to find a path to the goal
+maestro> maestro                # maestro is instantiated with one node by default
+maestro> tune                   # explore the environment with one node learning how many nodes need to be instantiated
+maestro> stop                   # stop all behaviors and activity, instantiate the right number of worker nodes
+maestro> tune                   # explore the environment with all nodes learning how the environment works
+maestro> stop                   # stop all behaviors and activity
+maestro> info                   # stop all behaviors and activity
+maestro> debug print(self.musicians)
+{(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20): <maestro.core.musician.MusicianNode object at 0x00000239216BC940>, 
+(29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48): <maestro.core.musician.MusicianNode object at 0x000002392345F668>, 
+(1, 7, 8, 9, 10, 18, 19, 20, 21, 22, 27, 28, 29, 30, 38, 39, 40, 41, 47, 48): <maestro.core.musician.MusicianNode object at 0x000002392345F908>, 
+(5, 6, 7, 15, 16, 17, 18, 19, 25, 26, 27, 28, 35, 36, 37, 38, 39, 45, 46, 47): <maestro.core.musician.MusicianNode object at 0x000002392345FC18>, 
+(1, 2, 3, 9, 10, 11, 12, 13, 21, 22, 23, 24, 29, 30, 31, 32, 33, 41, 42, 43): <maestro.core.musician.MusicianNode object at 0x000002392345FF28>, 
+(3, 4, 5, 12, 13, 14, 15, 16, 23, 24, 25, 26, 32, 33, 34, 35, 36, 43, 44, 45): <maestro.core.musician.MusicianNode object at 0x00000239234C8278>}
+
+maestro> debug print(self.musicians[(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20)].structure)
+    input                                                                                      ...   result
+       1      2      3      4      5      6      7      8      9      10     11     12     13  ...       8      9      10     11     12     13     14     15     16     17     18     19     20
+0    left   left  under   back   back   left    top    top   back  under  under   back  right  ...     None   None   None   None   None   None   None   None   None   None   None   None   None
+1   under   back   back   left    top    top   left   left   back  right   left   left    top  ...     left   back  right   left   left    top    top   back    top  front  right    top  under
+2   under   back   back   left  right  under  front   left   back  right   left   left    top  ...     left   back  right   left   left    top    top  under  right   back    top  right  under
+3   under   back   back   left  front  under   back   left   back  right   left   left    top  ...     left   back  right   left  front  under  right  under   left   back    top  right  under
+4   under   back  right   back   back  under   back   left   back  right   left  front  under  ...     left   back  right   left   back  under  under   left  under   back    top  right  under
+...
+31    top    top   back    top    top  front  right   back  right   back  right   left    top  ...     back  right   back  right   left    top   back  under   back  under  front    top   left
+32    top    top   back    top  right  right   left   back  right   back  right   left    top  ...     None   None   None   None   None   None   None   None   None   None   None   None   None
+
+[33 rows x 41 columns]
+
+ None
+
+maestro>
+```
 
 ## Project Layout
 
