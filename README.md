@@ -22,7 +22,7 @@ We are creating a "Markov compatible sensorimotor inference engine."
 
 "Inference engine" means that it figures out how its motor commands affect the environment. It does this by paying close attention to how its sensory input changes based upon what its motor commands were.
 
-Lastly, being "Markov compatible" simply means the environment constrained to be simple: a static state-space that is fully observable, even though it may be very large. The proof of concept won't be able to handle anything more complex than that.
+Lastly, being "Markov compatible" simply means the environment is constrained to be simple: a static state-space that is fully observable, even though it may be very large. The proof of concept won't be able to handle anything more complex than that.
 
 ### What is the basic design?
 The proof of concept design can be understood as a network of nodes that all talk to each other and share information to understand the environment they're placed in.
@@ -31,7 +31,7 @@ Each node can see a portion of the environment, remembers certain things about t
 
 They basically propose and vote on what choices to make in order for the majority of them to make sense of the world, though each only sees a small portion of it.
 
-What makes it General AI as opposed to regular AI?
+### What makes it General AI as opposed to regular AI?
 The idea is that you can categorize environments based upon their features and complexity. Thus if the AI can learn how to manipulate a certain type of environment it can learn to manipulate every possible environment, ever possible puzzle, that conforms to that type. Thus it is generalized.
 
 We have identified the following key features of environments that can be combined define its type:
@@ -44,23 +44,23 @@ We have identified the following key features of environments that can be combin
 
 4. Environments can have a static state-space that is fully observable or a non-static one. This essentially means there are other actors changing things in the environment, and that the Maestro AI actor is not the only agent acting on the environment.
 
-this creates a matrix of 8 different types of environments ranging from simple to complex. For example, here's the simplest possible environment (2x2 rubix cube):
+This creates a matrix of 8 different types of environments ranging from simple to complex. For example, here's the simplest possible environment (2x2 rubix cube):
 
-- small
+- small state-space
 - symmetric/repeating sensory patterns
 - behaviors have symmetric effects
 - static state-space, fully observable
 
 Here is the environment type we hope to be able to manage with our proof of concept (3x3 rubix cube):
 
-- large or infinite (memory intensive, multiple nodes required).
+- large or infinite state-space (memory intensive, multiple nodes required).
 - symmetric/repeating sensory patterns
 - behaviors have symmetric effects 
 - static state-space, fully observable
 
 And here is a complex environment that we someday hope to have Maestro AI manage effectively:
 
-- large or infinite (memory intensive)
+- large or infinite state-space (memory intensive)
 - non-symmetric and not repeating sensory patterns (sensory input is high in entropy)
 - behaviors do not have symmetric effects (motor effects is high in entropy).
 - static state-space, fully observable
@@ -79,12 +79,13 @@ We will know that our proof of concept for this design is a success if we give t
 
 It is our belief that AGI is _necessarily_ **computation upon distributed memory** (on a network).
 
-Some evidence for this belief is that most sophisticated machine learning algorithms such as Neural Nets are merely simulations of a network architecture. Even simple machine learning algorithms such as decision trees is represented as a network of nodes, in a particular hierarchical structure that produces a directed acyclic graph of computation.
+Some evidence for this belief is that most sophisticated machine learning algorithms such as Neural Nets are merely simulations of a network architecture. Even simple machine learning algorithms such as decision trees are represented as a network of nodes, in a particular hierarchical structure that produces a directed acyclic graph of computation.
 
 Thus, Maestro AI is essentially just being a network of nodes, simulated in some way such as the "actor model" of programming. Maestro AI is an attempt to produce a simple, generalized method of computation upon a network of nodes. This is to be done by working in two containing paradigms:
 
-    1. Maestro is to be a Sensorimotor engine, in constant communion with its environment. That is to say it's not merely a model, applied to data, but can be thought of as a living model, constantly changing through interaction with its environment; as an actor.
-    2. Maestro is to be given, and made to understand the simplest category of environments first. There are simple environments (essentially static state spaces) and complex environment (essentially environments that change overtime regardless of maestro's actions). The Maestro Proof of Concept should first learn how to manage simple ones, rather than complex ones. This is because we want to, as its creators, learn step by step how to manage the communication of the network in order to most optimally achieve the appropriate distributed computation on distributed information for each type of environment. We need to learn the relationship between the complexity of Maestro's environment 
+1. Maestro is to be a Sensorimotor engine, in constant communion with its environment. That is to say it's not merely a model, applied to data, but can be thought of as a living model, constantly changing through interaction with its environment; as an actor.
+
+2. Maestro is to be given, and made to understand the simplest category of environments first. There are simple environments (essentially static state spaces) and complex environment (essentially environments that change overtime regardless of maestro's actions). The Maestro Proof of Concept should first learn how to manage simple ones, rather than complex ones. This is because we want to, as its creators, learn step by step how to manage the communication of the network in order to most optimally achieve the appropriate distributed computation on distributed information for each type of environment. We need to learn the relationship between the complexity of Maestro's environment and the complexity of each node's memory and ability to communicate with the rest of the network (distributed memory).
 
 Each actor has 4 things: behaviors as predefined functions, input data which is ultimately derived from the external environment, contextual information (communication with fellow actors), and a specific goal in terms of what they should get their input data to look like.
 
@@ -99,7 +100,7 @@ Maestro AI's distributed memory, and computational infrastructure acts as an eff
 
 How is Maestro useful? Many structures in the world today are essentially puzzles. They're static, fully observable state-spaces in which a Maestro AI bot can be place and can naturally (unsupervised) learn how to manipulate the environment to achieve any state of the environment it is given as a goal. Thus, Maestro, Even a naive version of it could prove very powerful as specific programming would not need to be employed. 
 
-A perfect and extremely simple use case is a web server supervisor. Maestro would be given a goal to make sure the website is up and that not more than one instance of the webserver is running. During training it can learn how its behaviors manipulate the environment: one function it can call kills all instances of the webserver while another function starts one.
+A perfect and extremely simple use case is a web server supervisor. Maestro would be given a goal to make sure the website is up and that not more than one instance of the webserver is running. That is a specific state-space within all possible states of the environment. During training it can learn how its behaviors manipulate the environment: one function it can call kills all instances of the webserver while another function starts one.
 
 After it learns how to restart the server as soon as it crashes it can be deployed to the real world. It could be trained to supervise more servers than one and learn which functions restart which servers or what to do when there are complications and when it is appropriate to get a human involved.
 
@@ -155,25 +156,26 @@ space, that is, it's underlying relationships needn't be logically deduced.
 
 ## How maestro works
 
-maestro can work in one of two ways: manual and automatic. An example of a
-manual setup is shown above. Each actor is designed and placed in a specific
-role. This set up is best for situations where the entire environment may not
-be able to be replicated in a simulation.
-
-If the environment is completely simulated, though, (or if the training
-environment is the working environment) maestro can run in automatic mode. In
-this setup one actor is initially created who is the "master" of all other
-actors.
+Maestro proof of concept is essentially a 2 layer higherarchy. One actor is 
+initially created who is the "master" of all other actors. The Master node has
+very different responsibilities than the network of nodes. His role is to create
+the appropraite size of other nodes and serve as a conduit between the network
+and the outside environment, passing information from the environment to the 
+nodes and carrying out the will of the network upon the environment (performing
+behaviors). The master node is the mother of the network, the eyes and voice of
+the group.
 
 The master node has 2 important roles:
 
 1. Create all other actors as required by the environment. One actor will be
 created for each combination of inputs from the environment. if the environment
 is represented as 3 data points, A B and C maestro will make 6 subordinate
-worker actors: one for A, one for B, C, AB, AC, BC. The master node is
-automatically assigned ABC.
+worker actors: one for A, one for B, C, AB, AC, BC. No node sees the entire 
+picture, thus no node is assigned ABC. If B never changes unless C changes then 
+B and C nodes can be removed, leaving only nodes A, AB, AC, and BC. 
 
-2. Interface with the human operator and relay goals to the actors. The master
+2. Interface with the human operator and relay goals to the actors. And interface
+with the environment to pass state representations to the actors. The master
 node is the maestro. It doesn't know how to do anything, it makes little memory.
 When a goal is given it is given in the form of how the environment should look
 to the master node: 101. If the current state of the environment is 000 the
