@@ -217,7 +217,7 @@ goal.
 
 ## Maestro Overview
 
-[![Maestro Overview](https://www.github.com/LegitStack/maestro/)](https://www.github.com/LegitStack/maestro)
+[![Maestro Overview](https://github.com/LegitStack/maestro/blob/master/Maestro-overview.png)](https://github.com/LegitStack/maestro/blob/master/Maestro-overview.png)
 
 
 ## Installation
