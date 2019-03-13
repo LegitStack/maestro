@@ -220,6 +220,23 @@ goal.
 [![Maestro Overview](https://github.com/LegitStack/maestro/blob/master/Maestro-overview.png)](https://github.com/LegitStack/maestro/blob/master/Maestro-overview.png)
 
 
+## Collaboration Algorithm
+
+Maestro has an internal network of nodes with different and overlapping views of the environment so they have different and overlapping memory. When confronted with a task the nodes know and care only about fixing whats wrong with their view of the world. They analyse their memory structures and deduced how to manipulate their view of the world completely, regardless of what happens to the other parts of the world.
+
+So when given a current state of the world, and asked to make it into a goal state they first come up with the optimal way to fix their side view of the world to look as much like the goal state as possible. They then list a series of macro moves - that is moves that might affect others - along with the final state of the system as far as they can see. Every node does this proposal of their preferred set of moves.
+
+Then every node begins to fill in the missing parts to everyone else's proposals. They say, "if we did this move, as you have suggested, from my point of view, this part of the environment, which you don't know about would end up looking like this." and they do that for all proposals according to what seems most valuable to promising them and what is nearly complete (and therefore most valuable to the group).
+
+Eventually one proposed path will be completely filled out and the final state of all the actions is known. That path will be chosen, not to execute immediately, but chosen as a new starting state where all the nodes will then look for paths from that state to the goal, and repeate the process above.
+
+Of course this same process will occur from the goal state, back to the initial state too in parallel. This means if there is any matching state on the goal side, working backwards that matches a state on the current inital state working forwards then we have found a path to a goal. nodes are also checking those states to see if any of them match or partially match - that is some of the state is known, has been filled out, and all of what is known matches a state on the other side; those will be looked into further, and will direct attention to work on those kinds of paths.
+
+Eventually a path from the initial state will be found that leads to the goal state. At that time the completed actions (the path) will be passed up to the master node, and it will execute the behaviors, always verifying the prediction as it goes. In the event that a prediction is violated the mistaken node will be shown the mistake and it's memory will be fixed. Then the process will start over again from the current state.
+
+This is the simplest multi-agent, distributed memory, collaborative, single-set-of-collective-behaviors, generalized, path finding algorithm we could come up with.
+
+
 ## Installation
 
     maestro> python setup.py develop
