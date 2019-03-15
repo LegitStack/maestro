@@ -220,19 +220,63 @@ goal.
 [![Maestro Overview](https://github.com/LegitStack/maestro/blob/master/Maestro-overview.png)](https://github.com/LegitStack/maestro/blob/master/Maestro-overview.png)
 
 
+## Collaboration Algorithm
+
+Maestro has an internal network of nodes with different and overlapping views of the environment so they have different and overlapping memory. When confronted with a task the nodes know and care only about fixing whats wrong with their view of the world. They analyse their memory structures and deduced how to manipulate their view of the world completely, regardless of what happens to the other parts of the world.
+
+So when given a current state of the world, and asked to make it into a goal state they first come up with the optimal way to fix their side view of the world to look as much like the goal state as possible. They then list a series of macro moves - that is moves that might affect others - along with the final state of the system as far as they can see. Every node does this proposal of their preferred set of moves.
+
+Then every node begins to fill in the missing parts to everyone else's proposals. They say, "if we did this move, as you have suggested, from my point of view, this part of the environment, which you don't know about would end up looking like this." and they do that for all proposals according to what seems most valuable to promising them and what is nearly complete (and therefore most valuable to the group).
+
+Eventually one proposed path will be completely filled out and the final state of all the actions is known. That path will be chosen, not to execute immediately, but chosen as a new starting state where all the nodes will then look for paths from that state to the goal, and repeate the process above.
+
+Of course this same process will occur from the goal state, back to the initial state too in parallel. This means if there is any matching state on the goal side, working backwards that matches a state on the current inital state working forwards then we have found a path to a goal. nodes are also checking those states to see if any of them match or partially match - that is some of the state is known, has been filled out, and all of what is known matches a state on the other side; those will be looked into further, and will direct attention to work on those kinds of paths.
+
+Eventually a path from the initial state will be found that leads to the goal state. At that time the completed actions (the path) will be passed up to the master node, and it will execute the behaviors, always verifying the prediction as it goes. In the event that a prediction is violated the mistaken node will be shown the mistake and it's memory will be fixed. Then the process will start over again from the current state.
+
+This is the simplest multi-agent, distributed memory, collaborative, single-set-of-collective-behaviors, generalized, path finding algorithm we could come up with.
+
+
 ## Installation
 
     maestro> python setup.py develop
 
 
 ## Getting Started
+```
 
-    maestro> maestro                # maestro is instantiated with one node by default
-    maestro> tune                   # explore the environment with one node learning how many nodes need to be instantiated
-    maestro> stop                   # stop all behaviors and activity, instantiate the right number of worker nodes
-    maestro> tune                   # explore the environment with all nodes learning how the environment works
-    maestro> stop                   # stop all behaviors and activity
-    maestro> play <specific state>  # nodes work together with their learned memory to find a path to the goal
+maestro> maestro                # maestro is instantiated with one node by default
+maestro> tune                   # explore the environment with one node learning how many nodes need to be instantiated
+maestro> stop                   # stop all behaviors and activity, instantiate the right number of worker nodes
+maestro> tune                   # explore the environment with all nodes learning how the environment works
+maestro> stop                   # stop all behaviors and activity
+maestro> info                   # stop all behaviors and activity
+maestro> debug print(self.musicians)
+{(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20): <maestro.core.musician.MusicianNode object at 0x00000239216BC940>, 
+(29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48): <maestro.core.musician.MusicianNode object at 0x000002392345F668>, 
+(1, 7, 8, 9, 10, 18, 19, 20, 21, 22, 27, 28, 29, 30, 38, 39, 40, 41, 47, 48): <maestro.core.musician.MusicianNode object at 0x000002392345F908>, 
+(5, 6, 7, 15, 16, 17, 18, 19, 25, 26, 27, 28, 35, 36, 37, 38, 39, 45, 46, 47): <maestro.core.musician.MusicianNode object at 0x000002392345FC18>, 
+(1, 2, 3, 9, 10, 11, 12, 13, 21, 22, 23, 24, 29, 30, 31, 32, 33, 41, 42, 43): <maestro.core.musician.MusicianNode object at 0x000002392345FF28>, 
+(3, 4, 5, 12, 13, 14, 15, 16, 23, 24, 25, 26, 32, 33, 34, 35, 36, 43, 44, 45): <maestro.core.musician.MusicianNode object at 0x00000239234C8278>}
+
+maestro> debug print(self.musicians[(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20)].structure)
+    input                                                                                      ...   result
+       1      2      3      4      5      6      7      8      9      10     11     12     13  ...       8      9      10     11     12     13     14     15     16     17     18     19     20
+0    left   left  under   back   back   left    top    top   back  under  under   back  right  ...     None   None   None   None   None   None   None   None   None   None   None   None   None
+1   under   back   back   left    top    top   left   left   back  right   left   left    top  ...     left   back  right   left   left    top    top   back    top  front  right    top  under
+2   under   back   back   left  right  under  front   left   back  right   left   left    top  ...     left   back  right   left   left    top    top  under  right   back    top  right  under
+3   under   back   back   left  front  under   back   left   back  right   left   left    top  ...     left   back  right   left  front  under  right  under   left   back    top  right  under
+4   under   back  right   back   back  under   back   left   back  right   left  front  under  ...     left   back  right   left   back  under  under   left  under   back    top  right  under
+...
+31    top    top   back    top    top  front  right   back  right   back  right   left    top  ...     back  right   back  right   left    top   back  under   back  under  front    top   left
+32    top    top   back    top  right  right   left   back  right   back  right   left    top  ...     None   None   None   None   None   None   None   None   None   None   None   None   None
+
+[33 rows x 41 columns]
+
+ None
+
+maestro>
+```
 
 ## Project Layout
 
