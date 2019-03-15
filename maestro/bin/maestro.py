@@ -9,5 +9,14 @@ def main():
         environment=cube.RubiksCube(),
         verbose=True)
 
+
+def solo():
+    ''' start a maestro ai '''
+    conductor_node = conductor.ConductorNode(
+        environment=cube.RubiksCubeTwo(),
+        verbose=True)
+
+
 if __name__ == '__main__':
-    main()
+    # main()
+    solo()
