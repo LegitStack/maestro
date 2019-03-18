@@ -151,19 +151,40 @@ def forward_search_simple(
         memory: pd.DataFrame,
         inputs: 'list(dict)',
     ) -> pd.DataFrame:
-        pass
+        search_params = []
+        for item in inputs:
+            search_params.append(
+                produce_conditions(memory=memory, column='input', map=item))
+        condition = False
+        for item in search_params:
+            condition = condition | item
+            print(condition)
+        return memory.loc[condition, :]
 
-    def is_goal_in(
-        memory: pd.DataFrame,
-        goal: dict,
-    ) -> pd.DataFrame:
-        pass
+    def is_goal_in(memory: pd.DataFrame, goal: dict) -> 'False / pd.DataFrame':
+        goal_observations = memory.loc[
+            produce_conditions(memory=memory, column='result', map=goal), :]
+        if goal_observations.shape[0] == 0:
+            return False
+        return goal_observations
 
     def ignore_ignorables(
         memory: pd.DataFrame,
         ignorables: 'list(dict)',
     ) -> pd.DataFrame:
-        pass
+        filtered = memory[[('result', k) for k in goal.keys()]]
+        filtered.columns = filtered.columns.droplevel()
+        ignore = pd.DataFrame(ignorables)
+        filtered = filtered.merge(
+            ignore.drop_duplicates(),
+            on=[k for k in goal.keys()],
+            how='left',
+            indicator=True)
+        filtered = filtered[filtered['_merge'] == 'left_only']
+        filtered = filtered.drop('_merge', axis=1)
+        print(type(filtered), filtered)
+        filtered = filtered.to_dict('records')
+        return filtered
 
     counter = 0
     found_goal = False
@@ -180,15 +201,18 @@ def forward_search_simple(
         found_goal = is_goal_in(memory=first_filter, goal=goal)
         if found_goal:
             # compile path to loop
+            print('FOUND GOAL!!!')
             break
         if first_filter.shape[0] == 0:
             # compile best option from (previous) second filter
+            print('filter empty!!!')
             break
         if isinstance(inputs, Iterable) and len(inputs) > 0:
             ignorables.append(*inputs)
         second_filter = ignore_ignorables(memory=memory, ignorables=ignorables)
         if second_filter.shape[0] == 0:
             # compile best option from first filter
+            print('second empty!!!')
             break
 
     compiled = {'states': [], 'actions': []}
@@ -243,7 +267,7 @@ def forward_search(
     goal_observations = observations.loc[
         produce_conditions(memory=memory, column='result', map=goal)]
 
-    if observations is None:
+    if observations is None or observations.shape[0] == 0:
         return False, None, None
 
     # step 3a:

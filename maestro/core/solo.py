@@ -258,9 +258,14 @@ class SoloNode():
             input=self.state)
 
     def get_path(self, start: dict, goal: dict) -> list:
-            return memory.forward_search(
+            # return memory.forward_search(
+            #    memory=self.structure,
+            #    inputs=[start],
+            #    goal=goal,
+            #    counter=0,
+            #    max_counter=5,)
+            return memory.forward_search_simple(
                 memory=self.structure,
-                inputs=[start],
+                start=start,
                 goal=goal,
-                counter=0,
                 max_counter=5,)
