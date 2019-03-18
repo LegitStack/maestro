@@ -71,7 +71,10 @@ class RubiksCube(env.Environment):
     def act(self, action: dict) -> dict:
         action = self.clean_act(action)
         if action not in self.actions:
-            print(f'{action}, {type(action)}: action not found.\navailable actions: {self.actions}')
+            print(
+                action, type(action),
+                ': action not found.\navailable actions:',
+                self.actions)
             return self.state
         cube = copy.deepcopy(self.state)
         for k, v in eval(f'self.do_{action[0]}').items():
@@ -132,7 +135,10 @@ class RubiksCubeTwo(env.Environment):
     def act(self, action: dict) -> dict:
         action = self.clean_act(action)
         if action not in self.actions:
-            print(f'{action}, {type(action)}: action not found.\navailable actions: {self.actions}')
+            print(
+                action, type(action),
+                ': action not found.\navailable actions:',
+                self.actions)
             return self.state
         cube = copy.deepcopy(self.state)
         for k, v in eval(f'self.do_{action[0]}').items():

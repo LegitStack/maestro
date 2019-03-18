@@ -1,22 +1,24 @@
 ''' commandline entry point for the maestro project '''
 
 from maestro.core import conductor
+from maestro.core import solo
 from maestro.simulations import cube
+
 
 def main():
     ''' start a maestro ai '''
-    conductor_node = conductor.ConductorNode(
-        environment=cube.RubiksCube(),
+    conductor.ConductorNode(
+        environment=cube.RubiksCubeTwo(),
         verbose=True)
 
 
-def solo():
+def main_solo():
     ''' start a maestro ai '''
-    conductor_node = conductor.ConductorNode(
+    solo.SoloNode(
         environment=cube.RubiksCubeTwo(),
         verbose=True)
 
 
 if __name__ == '__main__':
     # main()
-    solo()
+    main_solo()

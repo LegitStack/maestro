@@ -140,6 +140,61 @@ def append_memory_action_result(
 
 # query functions ############################################################
 
+# untested - a retry on forward_search
+def forward_search_simple(
+    memory: pd.DataFrame,
+    start: 'list(dict)',
+    goal: dict,
+    max_counter: int = 5,
+):
+    def get_matching_inputs(
+        memory: pd.DataFrame,
+        inputs: 'list(dict)',
+    ) -> pd.DataFrame:
+        pass
+
+    def is_goal_in(
+        memory: pd.DataFrame,
+        goal: dict,
+    ) -> pd.DataFrame:
+        pass
+
+    def ignore_ignorables(
+        memory: pd.DataFrame,
+        ignorables: 'list(dict)',
+    ) -> pd.DataFrame:
+        pass
+
+    counter = 0
+    found_goal = False
+    no_path = False
+    inputs = [start]
+    ignorables = []
+    second_filter = memory
+    while (
+        counter <= max_counter
+        and not found_goal
+        and not no_path
+    ):
+        first_filter = get_matching_inputs(memory=memory, inputs=inputs)
+        found_goal = is_goal_in(memory=first_filter, goal=goal)
+        if found_goal:
+            # compile path to loop
+            break
+        if first_filter.shape[0] == 0:
+            # compile best option from (previous) second filter
+            break
+        if isinstance(inputs, Iterable) and len(inputs) > 0:
+            ignorables.append(*inputs)
+        second_filter = ignore_ignorables(memory=memory, ignorables=ignorables)
+        if second_filter.shape[0] == 0:
+            # compile best option from first filter
+            break
+
+    compiled = {'states': [], 'actions': []}
+    return compiled
+
+
 def forward_search(
     memory: pd.DataFrame,
     inputs: 'list(dict)',
@@ -164,7 +219,7 @@ def forward_search(
             return path (list of previous records in answer) and entire record.
     # TODO: fix it so it will get the closest match if goal is not found.
     '''
-
+    print(type(inputs), inputs)
     ignore_states = ignore_states or []
 
     # step 1:
@@ -181,19 +236,36 @@ def forward_search(
     condition = False
     for item in search_params:
         condition = condition | item
-    observations = memory.loc[condition]
-
+        print(condition)
+    observations = memory.loc[condition, :]
+    print(observations)
     # step 3:
     goal_observations = observations.loc[
         produce_conditions(memory=memory, column='result', map=goal)]
 
+    if observations is None:
+        return False, None, None
+
     # step 3a:
     if goal_observations.shape[0] == 0:
 
+        filtered = observations[[('result', k) for k in goal.keys()]]
+        filtered.columns = filtered.columns.droplevel()
+        ignore = pd.DataFrame(ignore_states)
+        filtered = filtered.merge(
+            ignore.drop_duplicates(),
+            on=[k for k in goal.keys()],
+            how='left',
+            indicator=True)
+        filtered = filtered[filtered['_merge'] == 'left_only']
+        filtered = filtered.drop('_merge', axis=1)
+        filtered = filtered.to_dict('records')
+
         # step 0:
-        if counter >= max_counter:
+        if counter >= max_counter or filtered == []:
             most_match = 0
-            index = observations.iloc[0].name
+            print(observations)
+            index = observations.iloc[0, :].name
             for ix, obs in observations.iterrows():
                 match_count = 0
                 for col, val in obs['result'].iteritems():
@@ -214,17 +286,6 @@ def forward_search(
             # becomes answer, compile actions.
             return (False, state_path, [action_state.to_dict()])
 
-        filtered = observations[[('result', k) for k in goal.keys()]]
-        filtered.columns = filtered.columns.droplevel()
-        ignore = pd.DataFrame(ignore_states)
-        filtered = filtered.merge(
-            ignore.drop_duplicates(),
-            on=[k for k in goal.keys()],
-            how='left',
-            indicator=True)
-        filtered = filtered[filtered['_merge'] == 'left_only']
-        filtered = filtered.drop('_merge', axis=1)
-        filtered = filtered.to_dict('records')
         goal_found, state_path, action_path = forward_search(
             memory=memory,
             inputs=filtered,
@@ -232,6 +293,9 @@ def forward_search(
             ignore_states=ignore_states,
             counter=counter + 1,
             max_counter=max_counter)
+        if state_path is None or action_path is None:
+            return False, None, None
+
         goal_path = observations.loc[
             produce_conditions(
                 memory=memory,

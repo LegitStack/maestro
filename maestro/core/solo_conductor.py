@@ -44,17 +44,8 @@ class ConductorNode():
         # used to efficiently create musicians... not necessary any more...
         self.new = True
         self.voters = self.registry.keys()
-        self.display_welcome()
-        self.listen_to()
 
-    def display_welcome(self):
-        print('Welcome to Maestro AI, the naive sensorimotor inferece engine!')
-        print('\nMaestro is are running in Conductor mode.\n')
-        print(
-            'env', self.env.name,
-            'allows for', len(self.env.get_actions()), 'actions',
-            'and has', len(self.state_keys), 'state indicies.\n')
-        print('maximum number of nodes:', 2 ** (len(self.state_keys)) - 2)
+        self.listen_to()
 
     def broadcast_message(self, msg: dict):
         if not self.new:
@@ -233,13 +224,13 @@ class ConductorNode():
     tune        - tells musicians to explore and learn
     stop        - tells musicians to stop all activity
     sleep       - tells musicians to condense memory
-    play <goal> - tells maestro to achieve a goal
+    play {goal} - tells maestro to achieve a goal
     exit        - exits maestro
 
     debug commands:
-    do <goal>   - tells musicians to do an action
-    send <msg>  - tells maestro to send a message
-    debug <code>- tells maestro to execute code
+    do {goal}   - tells musicians to do an action
+    send {msg}  - tells maestro to send a message
+    debug {code}- tells maestro to execute code
     pickle      - exports pickles of musicians minds
     '''
 
@@ -261,7 +252,7 @@ class ConductorNode():
     def set_goal(self, *goal):
         if self.goal == 'tune' or self.goal is None:
             self.goal == ''
-        if len(goal) == len(self.state_keys):
+        if len(goal) == self.state_keys:
             self.goal = {k: v for k, v in zip(self.state_keys, goal)}
         else:
             return (
