@@ -267,5 +267,5 @@ class SoloNode():
             return memory.forward_search_simple(
                 memory=self.structure,
                 start=start,
-                goal=goal,
+                goals=goal,
                 max_counter=5,)

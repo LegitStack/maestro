@@ -153,3 +153,44 @@ class RubiksCubeTwo(env.Environment):
         for i in range(40):
             self.act(random.choice(choices))
         return self.state
+
+
+class RubiksCubeOne(env.Environment):
+    ''' simulates a Rubiks one by one Cube '''
+
+    def __init__(self):
+        self.name = 'Rubiks_Cube_1x1'
+        self.state = {
+            1: 'top', 2: 'front', 3: 'right', 4: 'back', 5: 'left', 6: 'under'}
+        self.actions = [
+            {0: 'top'}, {0: 'under'},
+            {0: 'right'}, {0: 'left'},
+            {0: 'front'}, {0: 'back'}, ]
+        self.do_top = {1: 1, 2: 3, 3: 4, 4: 5, 5: 2, 6: 6}
+        self.do_under = {1: 1, 2: 5, 3: 2, 4: 3, 5: 4, 6: 6}
+        self.do_right = {1: 4, 2: 1, 3: 3, 4: 6, 5: 5, 6: 2}
+        self.do_left = {1: 2, 2: 6, 3: 3, 4: 1, 5: 5, 6: 4}
+        self.do_front = {1: 3, 2: 2, 3: 6, 4: 4, 5: 1, 6: 5}
+        self.do_back = {1: 5, 2: 2, 3: 1, 4: 4, 5: 6, 6: 3}
+
+    def act(self, action: dict) -> dict:
+        action = self.clean_act(action)
+        if action not in self.actions:
+            print(
+                action, type(action),
+                ': action not found.\navailable actions:',
+                self.actions)
+            return self.state
+        cube = copy.deepcopy(self.state)
+        for k, v in eval(f'self.do_{action[0]}').items():
+            self.state[k] = cube[v]
+        return self.see()
+
+    def see(self) -> dict:
+        return copy.deepcopy(self.state)
+
+    def scramble(self) -> dict:
+        choices = ['top', 'under', 'right', 'left', 'front', 'back']
+        for i in range(40):
+            self.act(random.choice(choices))
+        return self.state

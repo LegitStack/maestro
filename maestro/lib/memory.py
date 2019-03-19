@@ -143,62 +143,60 @@ def append_memory_action_result(
 # untested - a retry on forward_search
 def forward_search_simple(
     memory: pd.DataFrame,
-    start: 'list(dict)',
-    goal: dict,
+    start: 'dict',
+    goals: 'dict',
     max_counter: int = 5,
 ):
+    ''' once we're called we do everything in dataframe format '''
     def get_matching_inputs(
         memory: pd.DataFrame,
-        inputs: 'list(dict)',
+        inputs: pd.DataFrame,
     ) -> pd.DataFrame:
-        search_params = []
-        for item in inputs:
-            search_params.append(
-                produce_conditions(memory=memory, column='input', map=item))
-        condition = False
-        for item in search_params:
-            condition = condition | item
-            print(condition)
-        return memory.loc[condition, :]
+        idx = memory.loc[:, 'input'].merge(inputs, indicator=True).index
+        matching = memory.loc[idx]
+        return matching
 
-    def is_goal_in(memory: pd.DataFrame, goal: dict) -> 'False / pd.DataFrame':
-        goal_observations = memory.loc[
-            produce_conditions(memory=memory, column='result', map=goal), :]
-        if goal_observations.shape[0] == 0:
+    def is_goal_in(
+        memory: pd.DataFrame,
+        goals: pd.DataFrame,
+    ) -> 'False / pd.DataFrame':
+        # matching = memory.loc[  # original way (slicing)
+        #     produce_conditions(memory=memory, column='result', map=goal), :]
+        #   # fyi
+        idx = memory.loc[:, 'result'].merge(goals, indicator=True).index
+        matching = memory.loc[idx]
+        if matching.shape[0] == 0:
             return False
-        return goal_observations
+        return matching
 
     def ignore_ignorables(
-        memory: pd.DataFrame,
-        ignorables: 'list(dict)',
+        inputs: pd.DataFrame,
+        ignorables: pd.DataFrame,
     ) -> pd.DataFrame:
-        filtered = memory[[('result', k) for k in goal.keys()]]
-        filtered.columns = filtered.columns.droplevel()
-        ignore = pd.DataFrame(ignorables)
-        filtered = filtered.merge(
-            ignore.drop_duplicates(),
-            on=[k for k in goal.keys()],
-            how='left',
-            indicator=True)
-        filtered = filtered[filtered['_merge'] == 'left_only']
-        filtered = filtered.drop('_merge', axis=1)
-        print(type(filtered), filtered)
-        filtered = filtered.to_dict('records')
-        return filtered
+        idx = inputs.merge(ignorables, indicator=True).index
+        other = inputs.loc[inputs.index.difference(idx), :]
+        return other
+
+    if isinstance(start, dict):
+        start = [start]
+    if isinstance(goals, dict):
+        goals = [goals]
+    goals = pd.DataFrame(goals)
+    start = pd.DataFrame(start)
 
     counter = 0
     found_goal = False
     no_path = False
-    inputs = [start]
-    ignorables = []
-    second_filter = memory
+    inputs = start
+    ignorables = pd.DataFrame()
     while (
         counter <= max_counter
         and not found_goal
         and not no_path
     ):
+        print(inputs)
         first_filter = get_matching_inputs(memory=memory, inputs=inputs)
-        found_goal = is_goal_in(memory=first_filter, goal=goal)
+        found_goal = is_goal_in(memory=first_filter, goals=goals)
         if found_goal:
             # compile path to loop
             print('FOUND GOAL!!!')
@@ -207,13 +205,21 @@ def forward_search_simple(
             # compile best option from (previous) second filter
             print('filter empty!!!')
             break
-        if isinstance(inputs, Iterable) and len(inputs) > 0:
-            ignorables.append(*inputs)
-        second_filter = ignore_ignorables(memory=memory, ignorables=ignorables)
-        if second_filter.shape[0] == 0:
-            # compile best option from first filter
-            print('second empty!!!')
+        ignorables = (
+            ignorables
+            .append(inputs)  # concat instead?
+            .reset_index()
+            .drop('index', axis=1))
+        inputs = ignore_ignorables(
+            inputs=first_filter['result'],
+            ignorables=ignorables)
+        if inputs.shape[0] == 0:
+            # compile best option from (previous) second filter
+            print('goal not found!!!')
             break
+        if counter == max_counter:
+            print(inputs)
+            print('counter ran out!!!')
 
     compiled = {'states': [], 'actions': []}
     return compiled

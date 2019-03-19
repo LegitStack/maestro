@@ -15,7 +15,7 @@ def main():
 def main_solo():
     ''' start a maestro ai '''
     solo.SoloNode(
-        environment=cube.RubiksCubeTwo(),
+        environment=cube.RubiksCubeOne(),
         verbose=True)
 
 
