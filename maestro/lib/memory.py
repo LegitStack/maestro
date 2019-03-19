@@ -13,7 +13,6 @@ take care of that.
 '''
 import itertools
 import pandas as pd
-from collections.abc import Iterable
 
 
 def create_memory_of_columns(input: list, action: list) -> pd.DataFrame:

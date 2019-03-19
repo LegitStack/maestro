@@ -33,14 +33,14 @@ class SoloNode():
         self.action = {}
         self.goal = None
         self.last_print = ''
-        self.structure = memory.create_memory_from_input(
+        self.structure = memory.create_memory_of_columns(
             input=self.state,
             action=self.actions[0])
         self.display_welcome()
         self.listen_to()
 
     def display_welcome(self):
-        print('Welcome to Maestro AI, the naive sensorimotor inferece engine!')
+        print('Welcome to Maestro AI, the naive sensorimotor inference engine!')
         print('\nMaestro is are running in Solo mode.\n')
         print(
             'env', self.env.name,
@@ -248,24 +248,20 @@ class SoloNode():
 
     def update_memory(self):
         '''save a memory (append action and state as result) '''
-        self.structure = memory.append_memory_action_result(
-            memory=self.structure,
-            input=self.last_state,
-            action=self.action,
-            result=self.state,)
-        self.structure = memory.append_input(
-            memory=self.structure,
-            input=self.state)
+        if self.state is not None and self.action is not None:
+            self.structure = memory.append_entire_record(
+                memory=self.structure,
+                input=self.last_state,
+                action=self.action,
+                result=self.state,)
 
     def get_path(self, start: dict, goal: dict) -> list:
-            # return memory.forward_search(
-            #    memory=self.structure,
-            #    inputs=[start],
-            #    goal=goal,
-            #    counter=0,
-            #    max_counter=5,)
-            return memory.forward_search_simple(
-                memory=self.structure,
-                start=start,
-                goals=goal,
-                max_counter=5,)
+        success, path = memory.forward_search(
+            memory=self.structure,
+            start=start,
+            goals=goal,
+            max_counter=5,)
+        if success:
+            for _, step in path['action'].iterrows():
+                self.env.act(step.values[0])
+        return path

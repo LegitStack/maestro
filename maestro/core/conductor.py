@@ -48,7 +48,7 @@ class ConductorNode():
         self.listen_to()
 
     def display_welcome(self):
-        print('Welcome to Maestro AI, the naive sensorimotor inferece engine!')
+        print('Welcome to Maestro AI, the naive sensorimotor inference engine!')
         print('\nMaestro is are running in Conductor mode.\n')
         print(
             'env', self.env.name,
