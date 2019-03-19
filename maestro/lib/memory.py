@@ -141,30 +141,35 @@ def append_memory_action_result(
 # query functions ############################################################
 
 # untested - a retry on forward_search
-def forward_search_simple(
+def forward_search(
     memory: pd.DataFrame,
     start: 'dict',
     goals: 'dict',
     max_counter: int = 5,
-):
+) -> "( bool(found), list(dict(states)), list(dict(action)) )":
     ''' once we're called we do everything in dataframe format '''
     def get_matching_inputs(
         memory: pd.DataFrame,
         inputs: pd.DataFrame,
     ) -> pd.DataFrame:
-        idx = memory.loc[:, 'input'].merge(inputs, indicator=True).index
-        matching = memory.loc[idx]
+        idx = memory.loc[:, 'input'].reset_index().merge(
+            inputs,
+            on=memory.loc[:, 'input'].columns.tolist(),
+            indicator=True).set_index('index').index
+        matching = memory.loc[idx].reset_index(drop=True)
         return matching
 
     def is_goal_in(
-        memory: pd.DataFrame,
+        view: pd.DataFrame,
         goals: pd.DataFrame,
     ) -> 'False / pd.DataFrame':
-        # matching = memory.loc[  # original way (slicing)
-        #     produce_conditions(memory=memory, column='result', map=goal), :]
-        #   # fyi
-        idx = memory.loc[:, 'result'].merge(goals, indicator=True).index
-        matching = memory.loc[idx]
+        # matching = view.loc[  # original way (slicing)
+        #     produce_conditions(memory=view, column='result', map=goal), :]
+        idx = view.loc[:, 'result'].reset_index().merge(
+            goals,
+            on=view.loc[:, 'result'].columns.tolist(),
+            indicator=True).set_index('index').index
+        matching = view.loc[idx].reset_index(drop=True)
         if matching.shape[0] == 0:
             return False
         return matching
@@ -177,194 +182,104 @@ def forward_search_simple(
         other = inputs.loc[inputs.index.difference(idx), :]
         return other
 
+    def seek_better_option(
+        given: pd.DataFrame,
+        current: pd.DataFrame,
+        goals: pd.DataFrame,
+    ) -> 'bool, pd.DataFrame':
+        # non-ideal way of handling multiple goals (take first):
+        if goals.shape[0] > 1:
+            goal = goals.loc[[0]]
+        else:
+            goal = goals
+        scores = []
+        for ix, row in current['result'].iterrows():
+            score = 0
+            for c in goal.columns:
+                if row[c] == goal.loc[0, c]:
+                    score += 1
+            scores.append(score)
+        given_score = -1
+        if given is not None:
+            for c in goal.columns:
+                if given['result'].loc[0, c] == goal.loc[0, c]:
+                    given_score += 1
+        if max(scores) > given_score:
+            return True, current.loc[[scores.index(max(scores))]]
+        return False, given
+
+    def find_path(
+        memory: pd.DataFrame,
+        goals: pd.DataFrame,
+        max_counter: pd.DataFrame,
+        inputs: pd.DataFrame,
+        ignorables: pd.DataFrame,
+        counter: int = 0,
+    ) -> "str(success_code), pd.DataFrame(input, action, result)":
+        first_filter = get_matching_inputs(memory=memory, inputs=inputs)
+        found_goal = is_goal_in(view=first_filter, goals=goals)
+        if found_goal is not False:
+            return 'found', found_goal.loc[[0]]
+        if first_filter.shape[0] == 0:
+            return 'dead_end', None
+        ignorables = pd.concat([ignorables, inputs]).reset_index(drop=True)
+        new_inputs = ignore_ignorables(
+            inputs=first_filter['result'],
+            ignorables=ignorables)
+        if new_inputs.shape[0] == 0:
+            return 'dead_end', None
+        if counter == max_counter:
+            return 'counter', None  # replace None with best current option
+        success_code, path_end = find_path(
+            memory=memory,
+            goals=goals,
+            max_counter=max_counter,
+            inputs=new_inputs,
+            ignorables=ignorables,
+            counter=counter + 1,
+        )
+        if success_code == 'found':
+            prior_step = is_goal_in(
+                view=first_filter,
+                goals=path_end['input']).loc[[0]]
+            return (
+                success_code,
+                pd.concat([prior_step, path_end]).reset_index(drop=True))
+        if success_code in ['dead_end', 'counter']:
+            found, better = seek_better_option(
+                given=path_end,
+                current=first_filter,
+                goals=goals)
+            print('better', better)
+            if found:
+                return success_code, better
+            prior_step = is_goal_in(
+                view=first_filter,
+                goals=better['input']).loc[[0]]
+            print('prior_step', prior_step)
+            print('first_filter', first_filter)
+            return (
+                success_code,
+                pd.concat([prior_step, path_end]).reset_index(drop=True))
+        return success_code, path_end
+
     if isinstance(start, dict):
         start = [start]
     if isinstance(goals, dict):
         goals = [goals]
     goals = pd.DataFrame(goals)
-    start = pd.DataFrame(start)
 
-    counter = 0
-    found_goal = False
-    no_path = False
-    inputs = start
-    ignorables = pd.DataFrame()
-    while (
-        counter <= max_counter
-        and not found_goal
-        and not no_path
-    ):
-        print(inputs)
-        first_filter = get_matching_inputs(memory=memory, inputs=inputs)
-        found_goal = is_goal_in(memory=first_filter, goals=goals)
-        if found_goal:
-            # compile path to loop
-            print('FOUND GOAL!!!')
-            break
-        if first_filter.shape[0] == 0:
-            # compile best option from (previous) second filter
-            print('filter empty!!!')
-            break
-        ignorables = (
-            ignorables
-            .append(inputs)  # concat instead?
-            .reset_index()
-            .drop('index', axis=1))
-        inputs = ignore_ignorables(
-            inputs=first_filter['result'],
-            ignorables=ignorables)
-        if inputs.shape[0] == 0:
-            # compile best option from (previous) second filter
-            print('goal not found!!!')
-            break
-        if counter == max_counter:
-            print(inputs)
-            print('counter ran out!!!')
-
-    compiled = {'states': [], 'actions': []}
-    return compiled
-
-
-def forward_search(
-    memory: pd.DataFrame,
-    inputs: 'list(dict)',
-    goal: dict,
-    ignore_states: list = None,
-    counter: int = 0,
-    max_counter: int = 5,
-) -> (bool, 'list(states)', 'list(actions)'):
-    '''
-    recursive function, performs a breadth frist search from inputs to goal
-    steps:
-    0)  if we have reached the max counter find the best option and return it.
-    1)  add all inputs to ignore list
-    2)  compile dataset of input matches
-    3)  search for goal in that dataset:
-        a)  if not there: compile a list of inputs that are from the results of
-            the dataset and dont' match anything in the ignore list. Call this
-            function with that input list, the original goal, the updated
-            ignore list, the original max counter and add one to the counter.
-        b)  if it is there recursively generate the action list and return it.
-            isolate the input of action, match to result of observations.
-            return path (list of previous records in answer) and entire record.
-    # TODO: fix it so it will get the closest match if goal is not found.
-    '''
-    print(type(inputs), inputs)
-    ignore_states = ignore_states or []
-
-    # step 1:
-    # perhaps we should just add the input IDS or inputs instead of entire
-    # observations (input, action, result)
-    if isinstance(inputs, Iterable) and len(inputs) > 0:
-        ignore_states.append(*inputs)
-
-    # step 2:
-    search_params = []
-    for input in inputs:
-        search_params.append(
-            produce_conditions(memory=memory, column='input', map=input))
-    condition = False
-    for item in search_params:
-        condition = condition | item
-        print(condition)
-    observations = memory.loc[condition, :]
-    print(observations)
-    # step 3:
-    goal_observations = observations.loc[
-        produce_conditions(memory=memory, column='result', map=goal)]
-
-    if observations is None or observations.shape[0] == 0:
-        return False, None, None
-
-    # step 3a:
-    if goal_observations.shape[0] == 0:
-
-        filtered = observations[[('result', k) for k in goal.keys()]]
-        filtered.columns = filtered.columns.droplevel()
-        ignore = pd.DataFrame(ignore_states)
-        filtered = filtered.merge(
-            ignore.drop_duplicates(),
-            on=[k for k in goal.keys()],
-            how='left',
-            indicator=True)
-        filtered = filtered[filtered['_merge'] == 'left_only']
-        filtered = filtered.drop('_merge', axis=1)
-        filtered = filtered.to_dict('records')
-
-        # step 0:
-        if counter >= max_counter or filtered == []:
-            most_match = 0
-            print(observations)
-            index = observations.iloc[0, :].name
-            for ix, obs in observations.iterrows():
-                match_count = 0
-                for col, val in obs['result'].iteritems():
-                    if obs[col] == goal[col]:
-                        match_count += 1
-                if match_count > most_match:
-                    most_match = match_count
-                    index = ix
-            goal_observations = observations.loc[index]
-            input_state = goal_observations[
-                [('input', k) for k in input.keys()]]
-            goal_state = goal_observations[
-                [('result', k) for k in input.keys()]]
-            action_state = goal_observations[[
-                ('action', k)
-                for k, v in goal_observations['action'].items()]]
-            state_path = [input_state.to_dict()] + [goal_state.to_dict()]
-            # becomes answer, compile actions.
-            return (False, state_path, [action_state.to_dict()])
-
-        goal_found, state_path, action_path = forward_search(
-            memory=memory,
-            inputs=filtered,
-            goal=goal,
-            ignore_states=ignore_states,
-            counter=counter + 1,
-            max_counter=max_counter)
-        if state_path is None or action_path is None:
-            return False, None, None
-
-        goal_path = observations.loc[
-            produce_conditions(
-                memory=memory,
-                column='result',
-                map=state_path[0],
-                special_k=1)]
-        input_state = goal_path[[('input', k) for k in input.keys()]]
-        action_state = goal_path[
-            [('action', k) for k in goal_path['action'].columns]]
-        state_path = input_state.to_dict('records') + state_path
-        action_path = action_state.to_dict('records') + action_path
-        return (goal_found, state_path, action_path)
-
-    # step 3b:
-    else:
-        input_state = goal_observations[[('input', k) for k in input.keys()]]
-        goal_state = goal_observations[[('result', k) for k in input.keys()]]
-        action_state = goal_observations[
-            [('action', k) for k in goal_observations['action'].columns]]
-        state_path = (
-            input_state.to_dict('records')
-            + goal_state.to_dict('records'))
-        # becomes answer, compile actions.
-        return (True, state_path, action_state.to_dict('records'))
-        # return all matches?
-
-    # if max_counter > number of records we have...
-    # TODO: I'm not sure this is working, no test was written for this.
-    goal_observations = observations.loc[0]
-    input_state = goal_observations[[('input', k) for k in input.keys()]]
-    goal_state = goal_observations[[('result', k) for k in input.keys()]]
-    action_state = goal_observations[
-        [('action', k) for k in goal_observations['action'].columns]]
-    state_path = input_state.to_dict('records') + goal_state.to_dict('records')
-    # becomes answer, compile actions.
-    return (False, state_path, action_state.to_dict('records'))
-
-
-# TODO: backwards_search so that we can burn the candle at both ends.
+    success_code, path = find_path(
+        memory=memory,
+        goals=goals,
+        max_counter=max_counter,
+        inputs=pd.DataFrame(start),
+        ignorables=pd.DataFrame(),
+        counter=0,
+    )
+    if success_code == 'found':
+        return True, path
+    return False, path
 
 
 def find_input(memory: pd.DataFrame, input: dict) -> pd.DataFrame:

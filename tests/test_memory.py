@@ -96,152 +96,26 @@ def test_forward_search_and_find():
     }
     mem = memory.append_entire_record(mem, **new_row)
     mem = memory.append_memory_action_result(mem, input, action, result)
-    found, states, actions = memory.forward_search(
-        memory=mem,
-        inputs=[{1: 11, 3: 33, 2: 22, 4: 44}],
-        goal={1: 90, 2: 90, 3: 90, 4: 90},)
-    assert found
-    assert states == [
-        {
-            ('input', 1): 11, ('input', 3): 33,
-            ('input', 2): 22, ('input', 4): 44},
-        {
-            ('input', 1): 10, ('input', 2): 20,
-            ('input', 3): 30, ('input', 4): 40},
-        {
-            ('result', 1): 90, ('result', 2): 90,
-            ('result', 3): 90, ('result', 4): 90}]
-    assert actions == [
-        {('action', 'action'): 'a'},
-        {('action', 'action'): 'b'}]
-
-
-def test_forward_search_and_find_max_count_too_small():
-    found, states, actions = memory.forward_search(
-        memory=get_memory_structure(),
-        inputs=[{1: 11, 3: 33, 2: 22, 4: 44}],
-        goal={1: 91, 2: 91, 3: 91, 4: 91},
-        max_counter=1)
-    assert not found
-    assert states == [
-        {
-            ('input', 1): 11, ('input', 3): 33,
-            ('input', 2): 22, ('input', 4): 44},
-        {
-            ('input', 1): 10, ('input', 2): 20,
-            ('input', 3): 30, ('input', 4): 40},
-        {
-            ('result', 1): 90, ('result', 2): 90,
-            ('result', 3): 90, ('result', 4): 90}]
-    assert actions == [
-        {('action', 'action'): 'a'},
-        {('action', 'action'): 'b'}]
-
-
-def skip_test_forward_search_and_find_no_goal_next_best():
-    ''' the failure of this test informs us that the search algorithm isn't
-        quite right. right now it cannot find the closest match if there is no
-        exact match. we've got to deal with that before we can handle any true
-        environment, but for now we'll move on to building the protocol. '''
-    input = {1: 11, 3: 33, 2: 22, 4: 44}
-    action = {'action': 'a'}
-    result = {1: 10, 3: 30, 2: 20, 4: 40}
-    mem = memory.create_memory_from_input(input, action)
-    new_row = {
-        'input': {1: 10, 2: 20, 3: 30, 4: 40},
-        'action': {'action': 'b'},
-        'result': {1: 90, 2: 91, 3: 91, 4: 91},
-    }
-    mem = memory.append_entire_record(mem, **new_row)
-    new_row = {
-        'input': {1: 90, 2: 91, 3: 91, 4: 91},
-        'action': {'action': 'c'},
-        'result': {1: 91, 2: 90, 3: 90, 4: 90},
-    }
-    mem = memory.append_entire_record(mem, **new_row)
-    mem = memory.append_memory_action_result(mem, input, action, result)
-    found, states, actions = memory.forward_search(
-        memory=mem,
-        inputs=[{1: 11, 3: 33, 2: 22, 4: 44}],
-        goal={1: 91, 2: 91, 3: 91, 4: 91},)
-    assert not found
-    assert states == [
-        {
-            ('input', 1): 11, ('input', 3): 33,
-            ('input', 2): 22, ('input', 4): 44},
-        {
-            ('input', 1): 10, ('input', 2): 20,
-            ('input', 3): 30, ('input', 4): 40},
-        {
-            ('result', 1): 90, ('result', 2): 91,
-            ('result', 3): 91, ('result', 4): 91}]
-    assert actions == [
-        {('action', 'action'): 'a'},
-        {('action', 'action'): 'b'}]
-
-
-# forward_search_simple #######################################################
-# skip until you make it return the same kind of data.
-
-def skip_test_simple_forward_search_and_find():
-    input = {1: 11, 3: 33, 2: 22, 4: 44}
-    action = {'action': 'a'}
-    result = {1: 10, 3: 30, 2: 20, 4: 40}
-    mem = memory.create_memory_from_input(input, action)
-    new_row = {
-        'input': {1: 10, 2: 20, 3: 30, 4: 40},
-        'action': {'action': 'b'},
-        'result': {1: 90, 2: 90, 3: 90, 4: 90},
-    }
-    mem = memory.append_entire_record(mem, **new_row)
-    mem = memory.append_memory_action_result(mem, input, action, result)
-    found, states, actions = memory.forward_search_simple(
+    found, path = memory.forward_search(
         memory=mem,
         start={1: 11, 3: 33, 2: 22, 4: 44},
         goals={1: 90, 2: 90, 3: 90, 4: 90},)
     assert found
-    assert states == [
-        {
-            ('input', 1): 11, ('input', 3): 33,
-            ('input', 2): 22, ('input', 4): 44},
-        {
-            ('input', 1): 10, ('input', 2): 20,
-            ('input', 3): 30, ('input', 4): 40},
-        {
-            ('result', 1): 90, ('result', 2): 90,
-            ('result', 3): 90, ('result', 4): 90}]
-    assert actions == [
-        {('action', 'action'): 'a'},
-        {('action', 'action'): 'b'}]
+    assert path.loc[0, ('input', 1)] == 11
+    assert path.loc[1, ('input', 1)] == 10
 
 
-def skip_test_simple_forward_search_and_find_max_count_too_small():
-    found, states, actions = memory.forward_search_simple(
+def test_forward_search_and_find_max_count_too_small():
+    found, path = memory.forward_search(
         memory=get_memory_structure(),
-        start={1: 11, 3: 33, 2: 22, 4: 44},
-        goals={1: 91, 2: 91, 3: 91, 4: 91},
-        max_counter=1)
+        start={1: 11, 2: 22, 3: 33, 4: 44},
+        goals={1: 91, 2: 20, 3: 30, 4: 91},
+        max_counter=2)
     assert not found
-    assert states == [
-        {
-            ('input', 1): 11, ('input', 3): 33,
-            ('input', 2): 22, ('input', 4): 44},
-        {
-            ('input', 1): 10, ('input', 2): 20,
-            ('input', 3): 30, ('input', 4): 40},
-        {
-            ('result', 1): 90, ('result', 2): 90,
-            ('result', 3): 90, ('result', 4): 90}]
-    assert actions == [
-        {('action', 'action'): 'a'},
-        {('action', 'action'): 'b'}]
+    assert path.loc[0, ('input', 1)] == 11
 
 
-def skip_test_simple_forward_search_and_find_no_goal_next_best():
-    ''' the failure of this test informs us that the search algorithm isn't
-        quite right. right now it cannot find the closest match if there is no
-        exact match. we've got to deal with that before we can handle any true
-        environment, but for now we'll move on to building the protocol. '''
+def test_forward_search_and_find_no_goal_next_best():
     input = {1: 11, 3: 33, 2: 22, 4: 44}
     action = {'action': 'a'}
     result = {1: 10, 3: 30, 2: 20, 4: 40}
@@ -259,24 +133,13 @@ def skip_test_simple_forward_search_and_find_no_goal_next_best():
     }
     mem = memory.append_entire_record(mem, **new_row)
     mem = memory.append_memory_action_result(mem, input, action, result)
-    found, states, actions = memory.forward_search_simple(
+    found, path = memory.forward_search(
         memory=mem,
         start={1: 11, 3: 33, 2: 22, 4: 44},
         goals={1: 91, 2: 91, 3: 91, 4: 91},)
     assert not found
-    assert states == [
-        {
-            ('input', 1): 11, ('input', 3): 33,
-            ('input', 2): 22, ('input', 4): 44},
-        {
-            ('input', 1): 10, ('input', 2): 20,
-            ('input', 3): 30, ('input', 4): 40},
-        {
-            ('result', 1): 90, ('result', 2): 91,
-            ('result', 3): 91, ('result', 4): 91}]
-    assert actions == [
-        {('action', 'action'): 'a'},
-        {('action', 'action'): 'b'}]
+    assert path.loc[0, ('input', 1)] == 11
+    assert path.loc[1, ('input', 1)] == 10
 
 
 # simulate_actions ###########################################################
