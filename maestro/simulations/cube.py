@@ -1,5 +1,4 @@
 import copy
-import random
 
 from maestro.simulations import env
 
@@ -27,6 +26,7 @@ class RubiksCube(env.Environment):
             39: 'left', 40: 'left',
             41: 'under', 42: 'under', 43: 'under', 44: 'under',
             45: 'under', 46: 'under', 47: 'under', 48: 'under'}
+        self.original_state = copy.deepcopy(self.state)
         self.actions = [
             {0: 'top'}, {0: 'under'},
             {0: 'right'}, {0: 'left'},
@@ -81,15 +81,6 @@ class RubiksCube(env.Environment):
             self.state[k] = cube[v]
         return self.see()
 
-    def see(self) -> dict:
-        return copy.deepcopy(self.state)
-
-    def scramble(self) -> dict:
-        choices = ['top', 'under', 'right', 'left', 'front', 'back']
-        for i in range(40):
-            self.act(random.choice(choices))
-        return self.state
-
 
 class RubiksCubeTwo(env.Environment):
     ''' simulates a Rubiks two by two Cube '''
@@ -103,6 +94,7 @@ class RubiksCubeTwo(env.Environment):
             13: 'front', 14: 'right', 15: 'back', 16: 'left',
             17: 'front', 18: 'right', 19: 'back', 20: 'left',
             21: 'under', 22: 'under', 23: 'under', 24: 'under', }
+        self.original_state = copy.deepcopy(self.state)
         self.actions = [
             {0: 'top'}, {0: 'under'},
             {0: 'right'}, {0: 'left'},
@@ -145,15 +137,6 @@ class RubiksCubeTwo(env.Environment):
             self.state[k] = cube[v]
         return self.see()
 
-    def see(self) -> dict:
-        return copy.deepcopy(self.state)
-
-    def scramble(self) -> dict:
-        choices = ['top', 'under', 'right', 'left', 'front', 'back']
-        for i in range(40):
-            self.act(random.choice(choices))
-        return self.state
-
 
 class RubiksCubeOne(env.Environment):
     ''' simulates a Rubiks one by one Cube '''
@@ -162,6 +145,7 @@ class RubiksCubeOne(env.Environment):
         self.name = 'Rubiks_Cube_1x1'
         self.state = {
             1: 'top', 2: 'front', 3: 'right', 4: 'back', 5: 'left', 6: 'under'}
+        self.original_state = copy.deepcopy(self.state)
         self.actions = [
             {0: 'top'}, {0: 'under'},
             {0: 'right'}, {0: 'left'},
@@ -185,12 +169,3 @@ class RubiksCubeOne(env.Environment):
         for k, v in eval(f'self.do_{action[0]}').items():
             self.state[k] = cube[v]
         return self.see()
-
-    def see(self) -> dict:
-        return copy.deepcopy(self.state)
-
-    def scramble(self) -> dict:
-        choices = ['top', 'under', 'right', 'left', 'front', 'back']
-        for i in range(40):
-            self.act(random.choice(choices))
-        return self.state

@@ -192,7 +192,6 @@ class SoloNode():
     def set_goal(self, *goal):
         if self.goal == 'tune' or self.goal is None:
             self.goal == ''
-        print(len(goal), len(self.state_keys), len(goal) == len(self.state_keys))
         if len(goal) == len(self.state_keys):
             self.goal = {k: v for k, v in zip(self.state_keys, goal)}
         else:
@@ -263,5 +262,8 @@ class SoloNode():
             max_counter=5,)
         if success:
             for _, step in path['action'].iterrows():
-                self.env.act(step.values[0])
-        return path
+                self.last_state = copy.deepcopy(self.state)
+                self.action = step.values[0]
+                self.state = self.env.act(self.action)
+                # self.update_memory()  # learning?
+        return {'success': success, 'path': path}

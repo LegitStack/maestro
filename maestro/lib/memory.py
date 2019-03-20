@@ -181,7 +181,7 @@ def forward_search(
         other = inputs.loc[inputs.index.difference(idx), :]
         return other
 
-    def seek_better_option(
+    def seek_better_option(  # alternative to find_similar...
         given: pd.DataFrame,
         current: pd.DataFrame,
         goals: pd.DataFrame,
@@ -201,7 +201,10 @@ def forward_search(
         given_score = -1
         if given is not None:
             for c in goal.columns:
-                if given['result'].loc[0, c] == goal.loc[0, c]:
+                if (
+                    given['result'].reset_index(drop=True).loc[0, c]
+                    == goal.loc[0, c]
+                ):
                     given_score += 1
         if max(scores) > given_score:
             return True, current.loc[[scores.index(max(scores))]]
@@ -249,14 +252,11 @@ def forward_search(
                 given=path_end,
                 current=first_filter,
                 goals=goals)
-            print('better', better)
             if found:
                 return success_code, better
             prior_step = is_goal_in(
                 view=first_filter,
                 goals=better['input']).loc[[0]]
-            print('prior_step', prior_step)
-            print('first_filter', first_filter)
             return (
                 success_code,
                 pd.concat([prior_step, path_end]).reset_index(drop=True))

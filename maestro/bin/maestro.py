@@ -1,24 +1,44 @@
 ''' commandline entry point for the maestro project '''
+import click
 
 from maestro.core import conductor
 from maestro.core import solo
 from maestro.simulations import cube
+from maestro.simulations import numberline
 
 
+def get_environment(env):
+    return {
+        'cube1': cube.RubiksCubeOne,
+        'cube2': cube.RubiksCubeTwo,
+        'cube': cube.RubiksCube,
+        'numberline': numberline.NumberLine, }[env]
+
+
+@click.group()
 def main():
-    ''' start a maestro ai '''
+    ''' display help '''
+
+
+@main.command()
+@click.option(
+    '--env',
+    type=click.Choice(['cube1', 'cube2', 'cube', 'numberline']),
+    prompt=True)
+def symphony(env):
+    ''' start a maestro ai with conductor and musicians '''
     conductor.ConductorNode(
-        environment=cube.RubiksCubeTwo(),
+        environment=get_environment(env)(),
         verbose=True)
 
 
-def main_solo():
+@main.command()
+@click.option(
+    '--env',
+    type=click.Choice(['cube1', 'cube2', 'cube', 'numberline']),
+    prompt=True)
+def artist(env):
     ''' start a maestro ai '''
     solo.SoloNode(
-        environment=cube.RubiksCubeOne(),
+        environment=get_environment(env)(),
         verbose=True)
-
-
-if __name__ == '__main__':
-    # main()
-    main_solo()
