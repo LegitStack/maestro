@@ -109,6 +109,7 @@ class SoloNode():
             'goal': self.set_goal,
             'do': self.perform_action,
             # 'send': self.send_message,
+            'memory': self.display_memory,
             'debug': self.debug,
             'clear': self.clear_screen,
             'pickle': self.export_pickle,
@@ -127,6 +128,18 @@ class SoloNode():
             print(e)
 
     # commands ###############################################################
+
+    def display_memory(self):
+        return f'''
+    Memory Structure:
+        structure:
+        {self.structure}
+        columns: {self.structure.shape[1]}
+        observations: {self.structure.shape[0]}
+        details: {self.structure.describe()}
+        head: {self.structure.head()}
+        tail: {self.structure.tail()}
+    '''
 
     def get_info(self):
         return f'''
@@ -241,7 +254,10 @@ class SoloNode():
         time.sleep(1)
 
     def play(self):
-        print(self.get_path(start=self.state, goal=self.goal))
+        success, path = self.get_path(start=self.state, goal=self.goal)
+        print('path found' if success else 'no path found')
+        print(path)
+        print('current state:', self.state)
 
     # helper #################################################################
 
@@ -266,4 +282,4 @@ class SoloNode():
                 self.action = step.values[0]
                 self.state = self.env.act(self.action)
                 # self.update_memory()  # learning?
-        return {'success': success, 'path': path}
+        return success, path

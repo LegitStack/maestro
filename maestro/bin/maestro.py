@@ -22,23 +22,23 @@ def main():
 
 @main.command()
 @click.option(
-    '--env',
+    '-s', '--simulation',
     type=click.Choice(['cube1', 'cube2', 'cube', 'numberline']),
     prompt=True)
-def symphony(env):
+def symphony(simulation):
     ''' start a maestro ai with conductor and musicians '''
     conductor.ConductorNode(
-        environment=get_environment(env)(),
+        environment=get_environment(simulation)(),
         verbose=True)
 
 
 @main.command()
 @click.option(
-    '--env',
+    '-s', '--simulation',
     type=click.Choice(['cube1', 'cube2', 'cube', 'numberline']),
     prompt=True)
-def artist(env):
+def artist(simulation):
     ''' start a maestro ai '''
     solo.SoloNode(
-        environment=get_environment(env)(),
+        environment=get_environment(simulation)(),
         verbose=True)
