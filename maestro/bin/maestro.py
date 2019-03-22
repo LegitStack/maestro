@@ -5,6 +5,7 @@ from maestro.core import conductor
 from maestro.core import solo
 from maestro.simulations import cube
 from maestro.simulations import numberline
+from maestro.simulations import maze
 
 
 def get_environment(env):
@@ -12,7 +13,8 @@ def get_environment(env):
         'cube1': cube.RubiksCubeOne,
         'cube2': cube.RubiksCubeTwo,
         'cube': cube.RubiksCube,
-        'numberline': numberline.NumberLine, }[env]
+        'numberline': numberline.NumberLine,
+        'maze': maze.Maze, }[env]
 
 
 @click.group()
@@ -23,7 +25,7 @@ def main():
 @main.command()
 @click.option(
     '-s', '--simulation',
-    type=click.Choice(['cube1', 'cube2', 'cube', 'numberline']),
+    type=click.Choice(['cube1', 'cube2', 'cube', 'numberline', 'maze']),
     prompt=True)
 def symphony(simulation):
     ''' start a maestro ai with conductor and musicians '''
@@ -35,7 +37,7 @@ def symphony(simulation):
 @main.command()
 @click.option(
     '-s', '--simulation',
-    type=click.Choice(['cube1', 'cube2', 'cube', 'numberline']),
+    type=click.Choice(['cube1', 'cube2', 'cube', 'numberline', 'maze']),
     prompt=True)
 def artist(simulation):
     ''' start a maestro ai '''

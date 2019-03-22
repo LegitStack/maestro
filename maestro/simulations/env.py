@@ -9,7 +9,7 @@ class Environment():
         self.original_state = {0: 0}
         self.state = {0: 0}
         self.actions = [{0: 0}, {0: 1}]
-        self.name = 'simulated_environment'
+        self.name = 'simulated environment'
 
     def act(self, action: dict) -> dict:
         ''' send action to the environment, return mutated env state '''

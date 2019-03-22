@@ -7,7 +7,7 @@ class RubiksCube(env.Environment):
     ''' simulates a Rubiks Cube with a 20 cube representaiton '''
 
     def __init__(self):
-        self.name = 'Rubiks_Cube_3x3'
+        self.name = '3x3 Rubiks Cube'
         self.state = {
             1: 'top', 2: 'top', 3: 'top', 4: 'top',
             5: 'top', 6: 'top', 7: 'top', 8: 'top',
@@ -86,7 +86,7 @@ class RubiksCubeTwo(env.Environment):
     ''' simulates a Rubiks two by two Cube '''
 
     def __init__(self):
-        self.name = 'Rubiks_Cube_2x2'
+        self.name = '2x2 Rubiks Cube'
         self.state = {
             1: 'top', 2: 'top', 3: 'top', 4: 'top',
             5: 'front', 6: 'right', 7: 'back', 8: 'left',
@@ -142,7 +142,7 @@ class RubiksCubeOne(env.Environment):
     ''' simulates a Rubiks one by one Cube '''
 
     def __init__(self):
-        self.name = 'Rubiks_Cube_1x1'
+        self.name = '1x1 Rubiks Cube'
         self.state = {
             1: 'top', 2: 'front', 3: 'right', 4: 'back', 5: 'left', 6: 'under'}
         self.original_state = copy.deepcopy(self.state)

@@ -5,7 +5,7 @@ class NumberLine(env.Environment):
     ''' a 0 to 999 number line, traversable by +1 -1 +2 -5 '''
 
     def __init__(self):
-        self.name = 'numberline_base_10_3_digits'
+        self.name = 'Numberline - Base 10, 000 to 999'
         self.state = {1: '0', 2: '0', 3: '0'}
         self.original_state = {1: '0', 2: '0', 3: '0'}
         self.actions = [
