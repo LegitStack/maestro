@@ -44,3 +44,18 @@ class Environment():
         for i in range(count):
             self.act(random.choice(choices))
         return copy.deepcopy(self.state)
+
+    def set_state(self, new_state):
+        temp_state = {
+        k: v for k, v in new_state.items()
+        if k in self.state.keys()}
+        self.state = {**self.state, **temp_state}
+
+    def display(self):
+        displayable = (
+            'original_state', self.original_state,
+            'state', self.state ,
+            'actions', self.actions,
+            'name', self.name,)
+        print(displayable)
+        return displayable

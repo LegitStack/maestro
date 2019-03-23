@@ -108,6 +108,8 @@ class SoloNode():
             'play': self.set_goal,
             'goal': self.set_goal,
             'do': self.perform_action,
+            'state': self.set_state,
+            'display': self.display_env,
             # 'send': self.send_message,
             'memory': self.display_memory,
             'debug': self.debug,
@@ -140,6 +142,9 @@ class SoloNode():
         head: {self.structure.head()}
         tail: {self.structure.tail()}
     '''
+
+    def display_env(self):
+        return self.env.display()
 
     def get_info(self):
         return f'''
@@ -214,6 +219,20 @@ class SoloNode():
                 + f'environment ({len(self.state_keys)}).\nplease specify a'
                 + f'value for each index in order:\n{self.state_keys}')
 
+    def set_state(self, *state):
+        if len(state) == len(self.state_keys):
+            print(1)
+            self.state = {k: v for k, v in zip(self.state_keys, state)}
+            print(2)
+            self.env.set_state(self.state)
+            print(3)
+        else:
+            return (
+                f'error:\nspecified state {state} is not of the same length '
+                + f'({len(state)}) as the state representation for this'
+                + f'environment ({len(self.state_keys)}).\nplease specify a'
+                + f'value for each index in order:\n{self.state_keys}')
+
     def debug(self, *code):
         code = ' '.join(code)
         return exec(code)
@@ -258,6 +277,12 @@ class SoloNode():
         print('path found' if success else 'no path found')
         print(path)
         print('current state:', self.state)
+        if success:
+            for _, step in path['action'].iterrows():
+                self.last_state = copy.deepcopy(self.state)
+                self.action = step.values[0]
+                self.state = self.env.act(self.action)
+                # self.update_memory()  # learning?
 
     # helper #################################################################
 
@@ -276,10 +301,4 @@ class SoloNode():
             start=start,
             goals=goal,
             max_counter=5,)
-        if success:
-            for _, step in path['action'].iterrows():
-                self.last_state = copy.deepcopy(self.state)
-                self.action = step.values[0]
-                self.state = self.env.act(self.action)
-                # self.update_memory()  # learning?
         return success, path

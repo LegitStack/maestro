@@ -48,5 +48,12 @@ class Maze(env.Environment):
             if not self.structure[y][x]:
                 return x, y
 
-    def display_maze(self):
+    def display(self):
+        displayable = (
+            'original_state', self.original_state,
+            'state', self.state ,
+            'actions', self.actions,
+            'name', self.name,)
+        print(displayable)
         maze_maker.display_maze(self.structure)
+        return displayable
