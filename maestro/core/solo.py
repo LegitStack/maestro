@@ -9,6 +9,7 @@ import time
 import copy
 import random
 import threading
+import numpy as np
 
 from maestro.lib import memory
 # only needed for typing annotation:
@@ -144,7 +145,23 @@ class SoloNode():
     '''
 
     def display_env(self):
-        return self.env.display()
+        print('explored...')
+        explored = []
+        for y in range(self.env.structure.shape[0]):
+            row = []
+            for x in range(self.env.structure.shape[1]):
+                test = self.structure.loc[
+                    (self.structure.loc[:, ('result', 1)] == str(x)) &
+                    (self.structure.loc[:, ('result', 2)] == str(y)),:
+                ]
+                if test.shape[0] == 0:
+                    row.append(0)
+                else:
+                    row.append(1)
+                    print(x, y)
+            explored.append(row)
+        self.explored = np.array(explored)
+        return self.env.display(explored=explored)
 
     def get_info(self):
         return f'''

@@ -33,9 +33,11 @@ def generate_maze(width=81, height=51, complexity=0.75, density =0.75):
     return maze
 
 
-def display_maze(maze):
+def display_maze(maze, explored=None):
     plt.figure(figsize=(10, 5))
     plt.imshow(maze, cmap=plt.cm.binary, interpolation='nearest')
+    if explored is not None:
+        plt.imshow(explored, cmap=plt.cm.Reds, interpolation='nearest', alpha=0.6)
     plt.xticks([]), plt.yticks([])
     plt.show()
 
