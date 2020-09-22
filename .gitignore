@@ -84,7 +84,6 @@ data/final/*
 *.xlsx
 
 # Image files
-*.png
 !Maestro-overview.png
 
 /pm3_api/static/docs/*
